@@ -1008,7 +1008,7 @@
         setTimeout(() => {
           setSelected(null);
           const next = qIdx + 1;
-          if (next >= QUESTIONS.length) onComplete(newScores);
+          if (next >= QUESTIONS.length) onComplete(newScores, [...history, { area, pts }]);
           else setQIdx(next);
         }, 600);
       }, [scores, qIdx, completedAreas, area, areaQ]);
@@ -1074,7 +1074,7 @@
 
     // RESULTS SCREEN — sequential bar fill + countup
     // ═══════════════════════════════════════════════
-    function ResultsScreen({ name, displayName, scores, onReveal }) {
+    function ResultsScreen({ name, displayName, scores, answers, onReveal }) {
       const [email, setEmail]             = useState('');
       const [emailTouched, setEmailTouched] = useState(false);
       const [submitting, setSubmitting]   = useState(false);
@@ -1129,7 +1129,7 @@
           const res  = await fetch(WORKER_URL, {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ name, displayName, email: email.trim(), scores: scores.map(toTen) }),
+            body:    JSON.stringify({ name, displayName, email: email.trim(), scores: scores.map(toTen), answers: answers.map(h => h.pts) }),
           });
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || 'Submission failed');
@@ -1460,6 +1460,7 @@
       const [name, setName]               = useState('');
       const [displayName, setDisplayName] = useState('');
       const [scores, setScores]           = useState(Array(10).fill(0));
+      const [answers, setAnswers]         = useState([]);
       const [initQIdx, setInitQIdx]       = useState(0);
       const [initScores, setInitScores]   = useState(null);
       const [covering, setCovering]       = useState(true);
@@ -1489,7 +1490,7 @@
         setName(n); setDisplayName(dn);
         setInitQIdx(0); setInitScores(Array(10).fill(0));
       });
-      const finish   = s => navigate('results', () => setScores(s));
+      const finish   = (s, a) => navigate('results', () => { setScores(s); setAnswers(a || []); });
       const goReveal = () => navigate('reveal');
       const goResume = () => navigate('survey', () => {
         const s = savedData;
@@ -1515,7 +1516,7 @@
               initScores={initScores} initQIdx={initQIdx} onComplete={finish} />
           )}
           {screen === 'results'  && (
-            <ResultsScreen name={name} displayName={displayName} scores={scores} onReveal={goReveal} />
+            <ResultsScreen name={name} displayName={displayName} scores={scores} answers={answers} onReveal={goReveal} />
           )}
           {screen === 'reveal'   && <RevealScreen displayName={displayName} scores={scores} />}
           <div className={`transition-overlay${covering ? ' covering' : ''}`} />
