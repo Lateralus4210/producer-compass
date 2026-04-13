@@ -127,7 +127,7 @@ export async function POST(request) {
     );
   }
 
-  // Google Sheets logging (non-blocking — don't fail the request if this errors)
+  // Google Sheets logging (awaited — serverless fn must not exit before this completes)
   if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON && process.env.GOOGLE_SHEET_ID) {
     const row = [
       new Date().toISOString(),
@@ -139,7 +139,11 @@ export async function POST(request) {
       ...scores,
       ...(answers && answers.length === 70 ? answers : Array(70).fill('')),
     ];
-    appendSheetRow(row).catch(err => console.error('Sheets log failed:', err));
+    try {
+      await appendSheetRow(row);
+    } catch (err) {
+      console.error('Sheets log failed:', err);
+    }
   }
 
   return Response.json({ ok: true }, { headers: CORS });
