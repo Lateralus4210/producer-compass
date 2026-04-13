@@ -89,6 +89,7 @@ export async function OPTIONS() {
 
 export async function POST(request) {
   const { name, displayName, email, scores, answers } = await request.json();
+  console.log('answers received:', answers?.length, JSON.stringify(answers?.slice(0, 5)));
 
   if (!email || !scores || scores.length !== 10) {
     return Response.json({ error: 'Missing required fields' }, { status: 400, headers: CORS });
