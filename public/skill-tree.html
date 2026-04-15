@@ -288,7 +288,7 @@
     .btn-transition {
       background: var(--surface); border: 1.5px solid var(--border);
       border-radius: 10px; color: var(--text);
-      font-size: 14px; line-height: 1.5; padding: 14px 18px;
+      font-size: 13px; line-height: 1.45; padding: 10px 16px;
       text-align: left; transition: border-color 0.15s, background 0.15s;
       cursor: pointer;
     }
@@ -463,14 +463,16 @@
     .reveal-screen {
       overflow-y: auto; overflow-x: hidden;
       justify-content: flex-start; align-items: center;
-      padding: 28px 20px 36px; gap: 0;
+      padding: 20px 20px 40px; gap: 0;
+      flex-direction: column;
     }
     .reveal-body {
-      width: 100%; max-width: 480px;
-      display: flex; flex-direction: column; gap: 18px; align-items: center;
+      width: 100%; max-width: 400px;
+      display: flex; flex-direction: column; gap: 10px; align-items: center;
+      margin-bottom: 20px;
     }
     .reveal-tree-wrap {
-      width: min(100%, 300px);
+      width: min(100%, 160px);
       animation: reveal-tree 0.75s cubic-bezier(0.34,1.56,0.64,1) both;
     }
     .reveal-tree-wrap svg { width: 100%; aspect-ratio: 1; height: auto; }
@@ -538,7 +540,7 @@
     .btn-download:disabled { opacity: 0.35; pointer-events: none; }
 
     /* ── REVEAL SCORES ───────────────────────────── */
-    .reveal-scores { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+    .reveal-scores { width: 100%; display: flex; flex-direction: column; gap: 4px; }
 
     /* ── PARTICLES ───────────────────────────────── */
     #particles-host { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
@@ -1343,8 +1345,8 @@
               ))}
             </div>
           </div>
-          <div className="transition-options" style={{ width: '100%', maxWidth: 480, padding: '8px 0 32px' }}>
-            <h2 style={{ fontFamily: "'Libre Baskerville', Georgia, serif", fontSize: 'clamp(16px, 4vw, 22px)', fontWeight: 700, textAlign: 'center', marginBottom: 12, lineHeight: 1.4 }}>
+          <div className="transition-options">
+            <h2 style={{ fontFamily: "'Libre Baskerville', Georgia, serif", fontSize: 'clamp(14px, 4vw, 18px)', fontWeight: 700, textAlign: 'center', marginBottom: 8, lineHeight: 1.4 }}>
               What do you most want to change about where you are as a producer right now?
             </h2>
             {lowest4.map(({ key }) => (
@@ -1432,7 +1434,7 @@
           if (!res.ok) throw new Error(data.error || 'Request failed');
           setMessages(m => [...m, { role: 'assistant', content: data.message }]);
         } catch (err) {
-          setMessages(m => [...m, { role: 'assistant', content: 'Something went wrong — please try again.' }]);
+          setMessages(m => [...m, { role: 'assistant', content: `Error: ${err.message}` }]);
         } finally {
           setLoading(false);
         }

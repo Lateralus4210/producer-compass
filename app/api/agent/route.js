@@ -38,13 +38,19 @@ export async function OPTIONS() {
 }
 
 export async function POST(request) {
-  const { email, scores, selectedAnswer, messages } = await request.json();
+  try {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('ANTHROPIC_API_KEY is not set');
+      return Response.json({ error: 'Server misconfiguration: missing API key' }, { status: 500, headers: CORS });
+    }
 
-  if (!messages || !messages.length) {
-    return Response.json({ error: 'Missing messages' }, { status: 400, headers: CORS });
-  }
+    const { email, scores, selectedAnswer, messages } = await request.json();
 
-  const systemWithContext = `${SYSTEM_PROMPT}
+    if (!messages || !messages.length) {
+      return Response.json({ error: 'Missing messages' }, { status: 400, headers: CORS });
+    }
+
+    const systemWithContext = `${SYSTEM_PROMPT}
 
 ---
 This producer's Compass Skill Tree scores (out of 10):
@@ -53,27 +59,31 @@ ${buildScoreContext(scores)}
 They have chosen this as their primary focus: "${selectedAnswer}"
 ---`;
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': process.env.ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 512,
-      system: systemWithContext,
-      messages,
-    }),
-  });
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 512,
+        system: systemWithContext,
+        messages,
+      }),
+    });
 
-  if (!res.ok) {
-    const err = await res.text();
-    console.error('Claude API error:', res.status, err);
-    return Response.json({ error: 'Agent unavailable — please try again.' }, { status: 502, headers: CORS });
+    if (!res.ok) {
+      const err = await res.text();
+      console.error('Claude API error:', res.status, err);
+      return Response.json({ error: `Claude ${res.status}: ${err}` }, { status: 502, headers: CORS });
+    }
+
+    const data = await res.json();
+    return Response.json({ message: data.content[0].text }, { headers: CORS });
+  } catch (err) {
+    console.error('Agent route unhandled error:', err);
+    return Response.json({ error: `Internal error: ${err.message}` }, { status: 500, headers: CORS });
   }
-
-  const data = await res.json();
-  return Response.json({ message: data.content[0].text }, { headers: CORS });
 }
