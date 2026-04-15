@@ -271,6 +271,119 @@
     }
     .flavor-text .flavor-sub { color: #555; font-size: 12px; }
 
+    /* ── TRANSITION SCREEN ───────────────────────── */
+    .transition-screen {
+      justify-content: center; align-items: center;
+      gap: 28px; padding: 48px 24px; text-align: center;
+    }
+    .transition-screen h2 {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: clamp(18px, 4.5vw, 26px); font-weight: 700;
+      max-width: 420px; line-height: 1.4;
+    }
+    .transition-options {
+      display: flex; flex-direction: column; gap: 10px;
+      width: 100%; max-width: 460px;
+    }
+    .btn-transition {
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: 10px; color: var(--text);
+      font-size: 14px; line-height: 1.5; padding: 14px 18px;
+      text-align: left; transition: border-color 0.15s, background 0.15s;
+      cursor: pointer;
+    }
+    .btn-transition:hover { border-color: #F0C400; background: #F0C40008; }
+    .btn-transition:active { transform: scale(0.98); }
+
+    /* ── AGENT SCREEN ────────────────────────────── */
+    .agent-screen {
+      justify-content: flex-start; align-items: center;
+      padding: 0; gap: 0; overflow: hidden;
+    }
+    .agent-header {
+      width: 100%; padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0;
+    }
+    .agent-header-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #F0C400;
+      box-shadow: 0 0 8px #F0C40080; flex-shrink: 0;
+    }
+    .agent-header-label {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .agent-messages {
+      flex: 1; width: 100%; max-width: 560px;
+      overflow-y: auto; padding: 20px 20px 8px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .agent-msg {
+      display: flex; flex-direction: column; gap: 4px;
+      max-width: 88%;
+    }
+    .agent-msg.user { align-self: flex-end; align-items: flex-end; }
+    .agent-msg.assistant { align-self: flex-start; align-items: flex-start; }
+    .agent-bubble {
+      padding: 11px 14px; border-radius: 14px;
+      font-size: 14px; line-height: 1.6;
+    }
+    .agent-msg.user .agent-bubble {
+      background: #F0C400; color: #000; border-bottom-right-radius: 4px;
+    }
+    .agent-msg.assistant .agent-bubble {
+      background: var(--surface); color: var(--text);
+      border: 1px solid var(--border); border-bottom-left-radius: 4px;
+    }
+    .agent-typing {
+      display: flex; gap: 5px; align-items: center; padding: 11px 14px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; border-bottom-left-radius: 4px;
+    }
+    .agent-typing span {
+      width: 6px; height: 6px; border-radius: 50%; background: #555;
+      animation: agent-bounce 1.2s ease infinite;
+    }
+    .agent-typing span:nth-child(2) { animation-delay: 0.2s; }
+    .agent-typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes agent-bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+    .agent-input-row {
+      width: 100%; max-width: 560px;
+      padding: 12px 16px 20px;
+      display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0;
+    }
+    .agent-input {
+      flex: 1; background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: 10px; color: var(--text); font-size: 14px;
+      padding: 10px 13px; outline: none; resize: none;
+      transition: border-color 0.2s; min-height: 42px; max-height: 120px;
+      font-family: inherit; line-height: 1.5;
+    }
+    .agent-input:focus { border-color: #F0C400; }
+    .btn-agent-send {
+      background: #F0C400; color: #000; border-radius: 10px;
+      width: 40px; height: 40px; display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0;
+      transition: transform 0.12s, opacity 0.12s;
+    }
+    .btn-agent-send:hover { transform: scale(1.06); }
+    .btn-agent-send:disabled { opacity: 0.35; pointer-events: none; }
+
+    /* ── REVEAL CTA ──────────────────────────────── */
+    .btn-coach {
+      width: 100%; max-width: 480px;
+      background: transparent; border: 1.5px solid #F0C400;
+      color: #F0C400; border-radius: 50px;
+      font-size: 13px; font-weight: 700; padding: 12px 24px;
+      letter-spacing: 0.05em; transition: background 0.15s, color 0.15s;
+    }
+    .btn-coach:hover { background: #F0C400; color: #000; }
+
     /* ── DEV GATE ────────────────────────────────── */
     .dev-gate {
       justify-content: center; align-items: center; gap: 18px;
@@ -1134,7 +1247,7 @@
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || 'Submission failed');
           lsClear();
-          onReveal();
+          onReveal(email);
         } catch (err) {
           setSubmitError(err.message || 'Something went wrong — please try again.');
           setSubmitting(false);
@@ -1198,7 +1311,7 @@
     // ═══════════════════════════════════════════════
     // REVEAL SCREEN
     // ═══════════════════════════════════════════════
-    function RevealScreen({ displayName, scores }) {
+    function RevealScreen({ displayName, scores, onTransition }) {
       const pdfRef   = useRef(null);
       const [generating, setGenerating] = useState(false);
 
@@ -1294,7 +1407,10 @@
               </p>
             </div>
           </div>
-          <div style={{ width: '100%', maxWidth: 480, padding: '0 0 8px' }}>
+          <div style={{ width: '100%', maxWidth: 480, padding: '0 0 4px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <button className="btn-coach" onClick={onTransition}>
+              Talk to your coach →
+            </button>
             <button className="btn-download" onClick={handleDownload} disabled={generating}>
               {generating ? 'Generating…' : 'Download your Skill Tree'}
             </button>
@@ -1313,6 +1429,140 @@
           <div className="reveal-footer">
             © 2026 The Free Producer &nbsp;|&nbsp;
             <a href="https://skool.com/the-free-producer/about" target="_blank" rel="noopener">skool.com/the-free-producer</a>
+          </div>
+        </div>
+      );
+    }
+
+    // ═══════════════════════════════════════════════
+    // TRANSITION SCREEN
+    // ═══════════════════════════════════════════════
+    const TRANSITION_ANSWERS = {
+      composition: "I want my tracks to feel more complete and intentional, not just loops.",
+      theory:      "I want to understand why my music works — or doesn't — instead of just guessing.",
+      daw:         "I want to stop fighting my DAW and actually move at the speed of my ideas.",
+      mixing:      "I want my mixes to sound competitive, not like they need to be fixed later.",
+      mastering:   "I want to understand how to get my music ready for release without outsourcing it.",
+      collab:      "I want to actually work with other people instead of always producing alone.",
+      artwork:     "I want my music to have a visual identity that matches what it sounds like.",
+      release:     "I want to stop sitting on finished tracks and actually get them out.",
+      ideation:    "I want to stop running out of ideas and start sessions with more direction.",
+      promo:       "I want people to hear my music — I just don't know how to reach them.",
+    };
+
+    const AREA_KEY_ORDER = [
+      'composition', 'theory', 'daw', 'mixing', 'mastering',
+      'collab', 'artwork', 'release', 'ideation', 'promo',
+    ];
+
+    function TransitionScreen({ scores, onSelect }) {
+      const lowest4 = AREA_KEY_ORDER
+        .map((key, i) => ({ key, score: scores[i] ?? 0 }))
+        .sort((a, b) => a.score - b.score)
+        .slice(0, 4);
+
+      return (
+        <div className="screen transition-screen">
+          <h2>What do you most want to change about where you are as a producer right now?</h2>
+          <div className="transition-options">
+            {lowest4.map(({ key }) => (
+              <button key={key} className="btn-transition" onClick={() => onSelect(TRANSITION_ANSWERS[key])}>
+                {TRANSITION_ANSWERS[key]}
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // ═══════════════════════════════════════════════
+    // AGENT SCREEN
+    // ═══════════════════════════════════════════════
+    function AgentScreen({ email, scores, selectedAnswer }) {
+      const [messages, setMessages]   = useState([]);
+      const [input, setInput]         = useState('');
+      const [loading, setLoading]     = useState(false);
+      const bottomRef                 = useRef(null);
+      const hasOpened                 = useRef(false);
+
+      useEffect(() => {
+        if (hasOpened.current) return;
+        hasOpened.current = true;
+        const opening = [{ role: 'user', content: selectedAnswer }];
+        setMessages(opening);
+        call(opening);
+      }, []);
+
+      useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, [messages, loading]);
+
+      async function call(msgs) {
+        setLoading(true);
+        try {
+          const res = await fetch('/api/agent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, scores, selectedAnswer, messages: msgs }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Request failed');
+          setMessages(m => [...m, { role: 'assistant', content: data.message }]);
+        } catch (err) {
+          setMessages(m => [...m, { role: 'assistant', content: 'Something went wrong — please try again.' }]);
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      function send() {
+        const text = input.trim();
+        if (!text || loading) return;
+        const next = [...messages, { role: 'user', content: text }];
+        setMessages(next);
+        setInput('');
+        call(next);
+      }
+
+      function onKey(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+      }
+
+      return (
+        <div className="screen agent-screen">
+          <div className="agent-header">
+            <div className="agent-header-dot" />
+            <div className="agent-header-label">FP Coach</div>
+          </div>
+          <div className="agent-messages">
+            {messages.map((m, i) => (
+              <div key={i} className={`agent-msg ${m.role}`}>
+                <div className="agent-bubble">{m.content}</div>
+              </div>
+            ))}
+            {loading && (
+              <div className="agent-msg assistant">
+                <div className="agent-typing">
+                  <span /><span /><span />
+                </div>
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+          <div className="agent-input-row">
+            <textarea
+              className="agent-input"
+              placeholder="Reply…"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={onKey}
+              rows={1}
+            />
+            <button className="btn-agent-send" onClick={send} disabled={loading || !input.trim()}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M14 8L2 2l2.5 6L2 14l12-6z" fill="currentColor"/>
+              </svg>
+            </button>
           </div>
         </div>
       );
@@ -1461,6 +1711,8 @@
       const [displayName, setDisplayName] = useState('');
       const [scores, setScores]           = useState(Array(10).fill(0));
       const [answers, setAnswers]         = useState([]);
+      const [email, setEmail]             = useState('');
+      const [selectedAnswer, setSelected] = useState('');
       const [initQIdx, setInitQIdx]       = useState(0);
       const [initScores, setInitScores]   = useState(null);
       const [covering, setCovering]       = useState(true);
@@ -1490,8 +1742,10 @@
         setName(n); setDisplayName(dn);
         setInitQIdx(0); setInitScores(Array(10).fill(0));
       });
-      const finish   = (s, a) => navigate('results', () => { setScores(s); setAnswers(a || []); });
-      const goReveal = () => navigate('reveal');
+      const finish      = (s, a) => navigate('results', () => { setScores(s); setAnswers(a || []); });
+      const goReveal    = (em) => navigate('reveal', () => { if (em) setEmail(em); });
+      const goTransition = () => navigate('transition');
+      const goAgent     = (answer) => navigate('agent', () => setSelected(answer));
       const goResume = () => navigate('survey', () => {
         const s = savedData;
         setName(s.name || ''); setDisplayName(s.displayName || (s.name || '').split(' ')[0]);
@@ -1518,7 +1772,9 @@
           {screen === 'results'  && (
             <ResultsScreen name={name} displayName={displayName} scores={scores} answers={answers} onReveal={goReveal} />
           )}
-          {screen === 'reveal'   && <RevealScreen displayName={displayName} scores={scores} />}
+          {screen === 'reveal'     && <RevealScreen displayName={displayName} scores={scores} onTransition={goTransition} />}
+          {screen === 'transition' && <TransitionScreen scores={scores} onSelect={goAgent} />}
+          {screen === 'agent'      && <AgentScreen email={email} scores={scores} selectedAnswer={selectedAnswer} />}
           <div className={`transition-overlay${covering ? ' covering' : ''}`} />
         </>
       );
