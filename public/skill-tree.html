@@ -1311,57 +1311,15 @@
     // ═══════════════════════════════════════════════
     // REVEAL SCREEN
     // ═══════════════════════════════════════════════
-    function RevealScreen({ displayName, scores, onTransition }) {
-      const pdfRef   = useRef(null);
-      const [generating, setGenerating] = useState(false);
-
-      const handleDownload = async () => {
-        if (generating || !pdfRef.current) return;
-        setGenerating(true);
-
-        // Boost node fill colors for PDF — strip hex alpha suffix so nodes render at full opacity
-        const litNodes = Array.from(pdfRef.current.querySelectorAll('circle[fill]'))
-          .filter(c => c.getAttribute('fill') !== '#0d0d0d' && c.getAttribute('fill') !== '#000');
-        const savedFills = litNodes.map(c => c.getAttribute('fill'));
-        litNodes.forEach(c => {
-          const f = c.getAttribute('fill');
-          if (f && f.length === 9 && f.startsWith('#')) c.setAttribute('fill', f.slice(0, 7));
-        });
-
-        // Freeze glow filters — html2canvas drops drop-shadow, leaving nodes dim
-        const glowNodes = Array.from(pdfRef.current.querySelectorAll('circle[style]'));
-        const savedFilters = glowNodes.map(c => c.style.filter);
-        glowNodes.forEach(c => { c.style.filter = 'none'; });
-
-        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-        try {
-          const canvas = await html2canvas(pdfRef.current, {
-            backgroundColor: '#000000',
-            scale: 2,
-            useCORS: true,
-            logging: false,
-          });
-          const { jsPDF } = window.jspdf;
-          const margin = 32;
-          const W = canvas.width / 2 + margin * 2;
-          const H = canvas.height / 2 + margin * 2;
-          const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [W, H], hotfixes: ['px_scaling'] });
-          pdf.setFillColor(0, 0, 0);
-          pdf.rect(0, 0, W, H, 'F');
-          pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, margin, canvas.width / 2, canvas.height / 2);
-          pdf.save(`${displayName || 'my'}-skill-tree.pdf`);
-        } finally {
-          // Restore fills and filters
-          litNodes.forEach((c, i) => c.setAttribute('fill', savedFills[i]));
-          glowNodes.forEach((c, i) => { c.style.filter = savedFilters[i]; });
-          setGenerating(false);
-        }
-      };
+    function RevealScreen({ displayName, scores, onSelect }) {
+      const lowest4 = AREA_KEY_ORDER
+        .map((key, i) => ({ key, score: scores[i] ?? 0 }))
+        .sort((a, b) => a.score - b.score)
+        .slice(0, 4);
 
       return (
         <div className="screen reveal-screen">
-          <div className="reveal-body" ref={pdfRef}>
+          <div className="reveal-body">
             <div className="reveal-tree-wrap">
               <Constellation
                 scores={scores} activeArea={null}
@@ -1384,51 +1342,16 @@
                 </div>
               ))}
             </div>
-            <div className="reveal-msg">
-              <div className="connect-block">
-                <div className="connect-label">Connect with us</div>
-                <div>
-                  <a className="connect-link" href="https://skool.com/the-free-producer/about" target="_blank" rel="noopener">
-                    The Free Producer on Skool
-                  </a>
-                </div>
-                <div>
-                  <a className="connect-link" href="https://skool.com/profile/zach-burger" target="_blank" rel="noopener">Zach on Skool</a>
-                  <span className="connect-divider">|</span>
-                  <a className="connect-link" href="https://skool.com/profile/skyler-newsome" target="_blank" rel="noopener">Skyler on Skool</a>
-                </div>
-                <div>
-                  <a className="connect-link" href="mailto:hello@the-free-producer.com">hello@the-free-producer.com</a>
-                </div>
-              </div>
-              <p style={{ fontSize: 11, color: 'var(--muted)', lineHeight: 1.65 }}>
-                Your Skill Tree is the foundation of the Compass coaching program —
-                built to work with your exact build as a producer.
-              </p>
-            </div>
           </div>
-          <div style={{ width: '100%', maxWidth: 480, padding: '0 0 4px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <button className="btn-coach" onClick={onTransition}>
-              Talk to your coach →
-            </button>
-            <button className="btn-download" onClick={handleDownload} disabled={generating}>
-              {generating ? 'Generating…' : 'Download your Skill Tree'}
-            </button>
-          </div>
-          <div className="social-proof" style={{ width: '100%', maxWidth: 480 }}>
-            <div className="social-proof-header">
-              <div className="social-proof-stat">200+ producers and counting</div>
-              <div className="social-proof-desc">
-                The Free Producer — built for producers who are done leaving music on their hard drive.
-              </div>
-            </div>
-            <div className="social-proof-img-wrap">
-              <img src="../assets/Copy of Copy of The FP Banner (1).png" alt="The Free Producer" />
-            </div>
-          </div>
-          <div className="reveal-footer">
-            © 2026 The Free Producer &nbsp;|&nbsp;
-            <a href="https://skool.com/the-free-producer/about" target="_blank" rel="noopener">skool.com/the-free-producer</a>
+          <div className="transition-options" style={{ width: '100%', maxWidth: 480, padding: '8px 0 32px' }}>
+            <h2 style={{ fontFamily: "'Libre Baskerville', Georgia, serif", fontSize: 'clamp(16px, 4vw, 22px)', fontWeight: 700, textAlign: 'center', marginBottom: 12, lineHeight: 1.4 }}>
+              What do you most want to change about where you are as a producer right now?
+            </h2>
+            {lowest4.map(({ key }) => (
+              <button key={key} className="btn-transition" onClick={() => onSelect(TRANSITION_ANSWERS[key])}>
+                {TRANSITION_ANSWERS[key]}
+              </button>
+            ))}
           </div>
         </div>
       );
@@ -1772,9 +1695,8 @@
           {screen === 'results'  && (
             <ResultsScreen name={name} displayName={displayName} scores={scores} answers={answers} onReveal={goReveal} />
           )}
-          {screen === 'reveal'     && <RevealScreen displayName={displayName} scores={scores} onTransition={goTransition} />}
-          {screen === 'transition' && <TransitionScreen scores={scores} onSelect={goAgent} />}
-          {screen === 'agent'      && <AgentScreen email={email} scores={scores} selectedAnswer={selectedAnswer} />}
+          {screen === 'reveal' && <RevealScreen displayName={displayName} scores={scores} onSelect={goAgent} />}
+          {screen === 'agent'  && <AgentScreen email={email} scores={scores} selectedAnswer={selectedAnswer} />}
           <div className={`transition-overlay${covering ? ' covering' : ''}`} />
         </>
       );

@@ -61,7 +61,7 @@ They have chosen this as their primary focus: "${selectedAnswer}"
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'claude-opus-4-6',
+      model: 'claude-sonnet-4-6',
       max_tokens: 512,
       system: systemWithContext,
       messages,
