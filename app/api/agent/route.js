@@ -8,6 +8,19 @@
  * Payload: { email, scores: number[10], selectedAnswer, messages: [{role, content}] }
  */
 
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+function loadFpContext() {
+  try {
+    return readFileSync(join(process.cwd(), 'lib/fp-context.md'), 'utf8');
+  } catch {
+    return '';
+  }
+}
+
+const FP_CONTEXT = loadFpContext();
+
 const AREA_KEYS = [
   'Composition', 'Music Theory', 'DAW Proficiency', 'Mixing', 'Mastering',
   'Collaboration', 'Artwork/Content', 'Release Process', 'Ideation', 'Promo',
@@ -19,7 +32,7 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-const SYSTEM_PROMPT = `You are a music production coach at The Free Producer — a community for producers who are done leaving music on their hard drives.
+const SYSTEM_PROMPT = FP_CONTEXT || `You are a music production coach at The Free Producer — a community for producers who are done leaving music on their hard drives.
 
 Your job is to understand where this producer is actually stuck, then help them see a clear path forward. You are not here to teach theory or give tutorials. You are here to diagnose the real obstacle and guide them toward taking action.
 
