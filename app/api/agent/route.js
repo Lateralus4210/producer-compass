@@ -29,8 +29,8 @@
 
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { loadContact, saveContact, applyUpdate, buildFeedEvents, parseContact } from '../../../lib/contact.js';
-import { ghAppendJsonl } from '../../../lib/github.js';
+import { loadContact, saveContact, applyUpdate, buildFeedEvents } from '../../../lib/contact.js';
+import { ghAppendJsonl, ghLogConversation } from '../../../lib/github.js';
 
 // ─── Static context ───────────────────────────────────────────────────────────
 
@@ -223,8 +223,11 @@ export async function POST(request) {
     const rawText = data.content[0].text;
     const { clean: message, update } = parseContextUpdate(rawText);
 
-    // Persist updates to contact file (fire-and-forget)
+    // Persist updates + log conversation (all fire-and-forget)
     const responsePayload = { message };
+    const userMessage = messages[messages.length - 1]?.content ?? '';
+
+    const backgroundTasks = [];
 
     if (update && contact && slug) {
       const prevFm = { ...contact.frontmatter };
@@ -241,13 +244,21 @@ export async function POST(request) {
       }
       if (update.homework) responsePayload.homework = update.homework;
 
-      // Write contact file + append feed events (background)
-      Promise.all([
+      backgroundTasks.push(
         saveContact(updated).then(() => invalidateCache(slug)),
         ...buildFeedEvents(slug, contact.frontmatter.displayName, prevFm, updated.frontmatter, update)
           .map(event => ghAppendJsonl('contacts/_feed.jsonl', event).catch(console.error)),
-      ]).catch(console.error);
+      );
     }
+
+    // Log every exchange for QA (slug may be null for anonymous users — skip)
+    if (slug) {
+      backgroundTasks.push(
+        ghLogConversation(slug, userMessage, message).catch(console.error)
+      );
+    }
+
+    if (backgroundTasks.length) Promise.all(backgroundTasks).catch(console.error);
 
     return Response.json(responsePayload, { headers: CORS });
 

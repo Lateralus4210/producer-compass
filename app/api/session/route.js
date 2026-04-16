@@ -17,6 +17,7 @@
  */
 
 import { loadContact, createContact } from '../../../lib/contact.js';
+import { ghGetJson } from '../../../lib/github.js';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -78,19 +79,36 @@ async function resolveContact(email) {
   let index = await kvGet(`email:${key}`);
 
   if (!index) {
-    // Admin: known slug, ensure contact file exists
+    // Admin: hardcoded slug
     if (ADMIN_EMAILS.includes(key)) {
       const slug = ADMIN_SLUGS[key];
       const contact = await loadContact(slug);
-      if (!contact) return null; // admin contact file must be manually created
+      if (!contact) return null;
       index = { slug, role: 'admin' };
       await kvSet(`email:${key}`, index);
     } else {
-      // Not in index — no Skill Tree submission yet
-      // Create a stub contact so they can still use the agent
-      const contact = await createContact({ email: key, role: 'lead' });
-      index = { slug: contact.slug, role: 'lead' };
-      await kvSet(`email:${key}`, index);
+      // Check _index.json (seeded from Skool member CSV) before auto-creating
+      const emailIndex = await ghGetJson('contacts/_index.json');
+      const entry = emailIndex?.[key];
+
+      if (entry?.slug) {
+        // Known member from Skool — check if their contact file exists, create stub if not
+        let contact = await loadContact(entry.slug);
+        if (!contact) {
+          contact = await createContact({
+            email: key,
+            name: entry.name,
+            role: entry.role ?? 'lead',
+          });
+        }
+        index = { slug: entry.slug, role: entry.role ?? 'lead' };
+        await kvSet(`email:${key}`, index);
+      } else {
+        // Completely unknown — auto-create stub
+        const contact = await createContact({ email: key, role: 'lead' });
+        index = { slug: contact.slug, role: 'lead' };
+        await kvSet(`email:${key}`, index);
+      }
     }
   }
 
