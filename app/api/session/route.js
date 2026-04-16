@@ -1,12 +1,22 @@
 /**
  * Next.js API Route — Session
  *
- * GET  /api/session — read fp_email cookie, return user data if found
+ * GET  /api/session — read fp_email cookie, return user data from contact file
  * POST /api/session — login by email (no password), set cookie, return user data
  *
- * User record shape stored in KV:
- *   { email, displayName, scores: number[10], savedAt }
+ * KV is a thin email→slug index only:
+ *   key: "email:{email}"  →  value: { slug, role }
+ *
+ * All user data (scores, wins, homework, level, xp, context) lives in the
+ * contact file at contacts/{slug}.md in the GitHub repo.
+ *
+ * On first login (email not in index):
+ *   - Admins: look up existing contact file by known slug, register in index
+ *   - Others: contact file should already exist from Skill Tree submission
+ *     If not (direct login without Skill Tree), a stub is created automatically
  */
+
+import { loadContact, createContact } from '../../../lib/contact.js';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -15,18 +25,15 @@ const CORS = {
 };
 
 const COOKIE_NAME = 'fp_email';
-const COOKIE_MAX_AGE = 365 * 24 * 60 * 60; // 1 year
+const COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
 const ADMIN_EMAILS = ['zach.a.burger@gmail.com', 'skynewso94@gmail.com'];
+const ADMIN_SLUGS = {
+  'zach.a.burger@gmail.com': 'zach-burger',
+  'skynewso94@gmail.com': 'skyler-newsome',
+};
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function resolveRole(email, existingRole) {
-  if (ADMIN_EMAILS.includes(email)) return 'admin';
-  return existingRole || 'lead';
-}
-
-// ─── Upstash REST helpers ─────────────────────────────────────────────────────
+// ─── KV helpers ───────────────────────────────────────────────────────────────
 
 async function kvGet(key) {
   const { KV_REST_API_URL, KV_REST_API_TOKEN } = process.env;
@@ -62,6 +69,47 @@ function setCookieHeader(email) {
   return `${COOKIE_NAME}=${encodeURIComponent(email)}; HttpOnly; Path=/; Max-Age=${COOKIE_MAX_AGE}; SameSite=Lax`;
 }
 
+// ─── Resolve contact for an email ────────────────────────────────────────────
+
+async function resolveContact(email) {
+  const key = email.trim().toLowerCase();
+
+  // Check KV index
+  let index = await kvGet(`email:${key}`);
+
+  if (!index) {
+    // Admin: known slug, ensure contact file exists
+    if (ADMIN_EMAILS.includes(key)) {
+      const slug = ADMIN_SLUGS[key];
+      const contact = await loadContact(slug);
+      if (!contact) return null; // admin contact file must be manually created
+      index = { slug, role: 'admin' };
+      await kvSet(`email:${key}`, index);
+    } else {
+      // Not in index — no Skill Tree submission yet
+      // Create a stub contact so they can still use the agent
+      const contact = await createContact({ email: key, role: 'lead' });
+      index = { slug: contact.slug, role: 'lead' };
+      await kvSet(`email:${key}`, index);
+    }
+  }
+
+  const contact = await loadContact(index.slug);
+  if (!contact) return null;
+
+  return {
+    email: key,
+    slug: index.slug,
+    role: index.role ?? contact.frontmatter.role ?? 'lead',
+    displayName: contact.frontmatter.displayName || contact.frontmatter.name || '',
+    scores: contact.frontmatter.scores ?? null,
+    level: contact.frontmatter.level ?? 1,
+    xp: contact.frontmatter.xp ?? 0,
+    homework: contact.frontmatter.homework ?? null,
+    wins: contact.frontmatter.wins ?? [],
+  };
+}
+
 // ─── Handlers ─────────────────────────────────────────────────────────────────
 
 export async function OPTIONS() {
@@ -72,21 +120,13 @@ export async function GET(request) {
   const email = readCookie(request, COOKIE_NAME);
   if (!email) return Response.json({ user: null }, { headers: CORS });
 
-  const key = email.toLowerCase();
-  let user = await kvGet(`user:${key}`);
-
-  // Auto-seed admin accounts that haven't logged in via survey
-  if (!user && ADMIN_EMAILS.includes(key)) {
-    user = { email: key, displayName: '', scores: Array(10).fill(0), role: 'admin', savedAt: new Date().toISOString() };
-    await kvSet(`user:${key}`, user);
+  try {
+    const user = await resolveContact(email);
+    return Response.json({ user }, { headers: CORS });
+  } catch (err) {
+    console.error('Session GET error:', err);
+    return Response.json({ user: null }, { headers: CORS });
   }
-
-  if (!user) return Response.json({ user: null }, { headers: CORS });
-
-  const role = resolveRole(key, user.role);
-  if (user.role !== role) await kvSet(`user:${key}`, { ...user, role });
-
-  return Response.json({ user: { ...user, role } }, { headers: CORS });
 }
 
 export async function POST(request) {
@@ -96,25 +136,18 @@ export async function POST(request) {
   }
 
   const key = email.trim().toLowerCase();
-  let user = await kvGet(`user:${key}`);
 
-  // Auto-seed admin accounts on first login
-  if (!user && ADMIN_EMAILS.includes(key)) {
-    user = { email: key, displayName: '', scores: Array(10).fill(0), role: 'admin', savedAt: new Date().toISOString() };
-    await kvSet(`user:${key}`, user);
+  try {
+    const user = await resolveContact(key);
+    if (!user) {
+      return Response.json({ error: 'Could not resolve contact.' }, { status: 404, headers: CORS });
+    }
+
+    return Response.json({ user }, {
+      headers: { ...CORS, 'Set-Cookie': setCookieHeader(key) },
+    });
+  } catch (err) {
+    console.error('Session POST error:', err);
+    return Response.json({ error: 'Internal error' }, { status: 500, headers: CORS });
   }
-
-  if (!user) {
-    return Response.json(
-      { error: 'No account found for that email.' },
-      { status: 404, headers: CORS }
-    );
-  }
-
-  const role = resolveRole(key, user.role);
-  if (user.role !== role) await kvSet(`user:${key}`, { ...user, role });
-
-  return Response.json({ user: { ...user, role } }, {
-    headers: { ...CORS, 'Set-Cookie': setCookieHeader(key) },
-  });
 }

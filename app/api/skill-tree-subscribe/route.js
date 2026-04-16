@@ -18,11 +18,13 @@
  */
 
 import { createSign } from 'crypto';
+import { createContact, loadContact, saveContact } from '../../../lib/contact.js';
+import { ghAppendJsonl } from '../../../lib/github.js';
 
 const COOKIE_NAME = 'fp_email';
 const COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
-// ─── Upstash REST helper ──────────────────────────────────────────────────────
+// ─── Upstash REST helper (index only) ────────────────────────────────────────
 
 async function kvSet(key, value) {
   const { KV_REST_API_URL, KV_REST_API_TOKEN } = process.env;
@@ -35,6 +37,17 @@ async function kvSet(key, value) {
     },
     body: JSON.stringify(['SET', key, JSON.stringify(value)]),
   });
+}
+
+async function kvGet(key) {
+  const { KV_REST_API_URL, KV_REST_API_TOKEN } = process.env;
+  if (!KV_REST_API_URL || !KV_REST_API_TOKEN) return null;
+  const res = await fetch(`${KV_REST_API_URL}/get/${encodeURIComponent(key)}`, {
+    headers: { Authorization: `Bearer ${KV_REST_API_TOKEN}` },
+  });
+  const { result } = await res.json();
+  if (!result) return null;
+  try { return JSON.parse(result); } catch { return result; }
 }
 
 const AREA_KEYS = [
@@ -164,14 +177,46 @@ export async function POST(request) {
     }
   }
 
-  // Write to KV and set session cookie
+  // Create or update contact file + register in KV index
   const emailKey = email.trim().toLowerCase();
-  await kvSet(`user:${emailKey}`, {
-    email: emailKey,
-    displayName: displayName || name || '',
-    scores,
-    savedAt: new Date().toISOString(),
-  });
+  try {
+    const existingIndex = await kvGet(`email:${emailKey}`);
+    if (existingIndex?.slug) {
+      // Update existing contact's scores + answers
+      const contact = await loadContact(existingIndex.slug);
+      if (contact) {
+        contact.frontmatter.scores = scores;
+        contact.frontmatter.answers = answers ?? null;
+        contact.frontmatter.displayName = displayName || name || contact.frontmatter.displayName;
+        await saveContact(contact, 'skill tree resubmission');
+      }
+    } else {
+      // New contact
+      const contact = await createContact({
+        email: emailKey,
+        name: name || displayName || '',
+        displayName: displayName || name || '',
+        role: 'lead',
+        scores,
+        answers: answers ?? null,
+      });
+      await kvSet(`email:${emailKey}`, { slug: contact.slug, role: 'lead' });
+
+      // Feed event: new lead created
+      ghAppendJsonl('contacts/_feed.jsonl', {
+        ts: new Date().toISOString(),
+        contact: contact.slug,
+        name: displayName || name || emailKey,
+        event: 'new_lead',
+        strongest: fields.strongest,
+        weakest: fields.weakest,
+        scores,
+      }).catch(console.error);
+    }
+  } catch (err) {
+    // Non-fatal — MailerLite + Sheets already captured the submission
+    console.error('Contact file create/update failed:', err);
+  }
 
   return Response.json({ ok: true }, {
     headers: {
