@@ -397,31 +397,6 @@
     }
     .btn-coach:hover { background: #F0C400; color: #000; }
 
-    /* ── DEV GATE ────────────────────────────────── */
-    .dev-gate {
-      justify-content: center; align-items: center; gap: 18px;
-      text-align: center; padding: 40px 28px;
-    }
-    .dev-badge {
-      font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
-      color: #FB923C; border: 1px solid #FB923C44; border-radius: 20px; padding: 3px 10px;
-    }
-    .dev-gate h2 { font-family: 'Libre Baskerville', Georgia, serif; font-size: 22px; font-weight: 700; }
-    .dev-gate p  { font-size: 13px; color: var(--muted); }
-    .dev-btn-row { display: flex; gap: 12px; }
-    .btn-resume {
-      background: #F0C400; color: #000;
-      font-size: 14px; font-weight: 700; padding: 12px 32px;
-      border-radius: 50px; transition: transform 0.15s;
-    }
-    .btn-resume:hover { transform: scale(1.04); }
-    .btn-reset {
-      background: transparent; color: var(--muted);
-      font-size: 14px; font-weight: 600; padding: 12px 32px;
-      border-radius: 50px; border: 1px solid var(--border);
-      transition: border-color 0.15s, color 0.15s;
-    }
-    .btn-reset:hover { border-color: #FC8181; color: #FC8181; }
 
     /* ── RESULTS SCREEN ──────────────────────────── */
     .results-screen {
@@ -1530,37 +1505,6 @@
     }
 
     // ═══════════════════════════════════════════════
-    // DEV GATE
-    // ═══════════════════════════════════════════════
-    function DevGate({ saved, onStart, onResume, onReset, onSkip }) {
-      return (
-        <div className="screen dev-gate">
-          <div className="dev-badge">Dev Mode</div>
-          {saved ? (
-            <>
-              <h2>Saved session found</h2>
-              <p>{saved.displayName || saved.name} · {Math.round((saved.qIdx / QUESTIONS.length) * 100)}% complete</p>
-              <div className="dev-btn-row">
-                <button className="btn-resume" onClick={onResume}>Resume</button>
-                <button className="btn-reset"  onClick={onReset}>Reset</button>
-              </div>
-            </>
-          ) : (
-            <>
-              <h2>Producer Skill Tree</h2>
-              <p>Dev build</p>
-              <div className="dev-btn-row">
-                <button className="btn-resume" onClick={onStart}>Start</button>
-              </div>
-            </>
-          )}
-          <button className="btn-reset" style={{ marginTop: 8 }} onClick={onSkip}>
-            Skip to results
-          </button>
-        </div>
-      );
-    }
-
     // ═══════════════════════════════════════════════
     // TITLE SCREEN
     // ═══════════════════════════════════════════════
@@ -1748,7 +1692,7 @@
               setReturning(true);
               setScreen('agent');
             } else {
-              setScreen('dev-gate');
+              setScreen('title');
             }
           })
           .catch(() => setScreen('dev-gate'))
@@ -1785,18 +1729,8 @@
         setName(s.name || ''); setDisplayName(s.displayName || (s.name || '').split(' ')[0]);
         setInitQIdx(s.qIdx); setInitScores(s.scores || Array(10).fill(0));
       });
-      const goReset = () => navigate('dev-gate', () => {
-        lsClear(); setSavedData(null); setName(''); setDisplayName('');
-        setInitQIdx(0); setInitScores(null); setScores(Array(10).fill(0));
-      });
-      const goSkip = () => navigate('results', () => {
-        const dummy = Array.from({ length: 10 }, () => 7 + Math.floor(Math.random() * 18));
-        setName('Dev'); setDisplayName('Dev'); setScores(dummy);
-      });
-
       return (
         <>
-          {screen === 'dev-gate' && <DevGate saved={savedData} onStart={goTitle} onResume={goResume} onReset={goReset} onSkip={goSkip} />}
           {screen === 'title'    && <TitleScreen onStart={goName} onReturning={handleReturning} />}
           {screen === 'name'     && <NameScreen  onNext={goSurvey} />}
           {screen === 'survey'   && (
