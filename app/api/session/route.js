@@ -17,6 +17,15 @@ const CORS = {
 const COOKIE_NAME = 'fp_email';
 const COOKIE_MAX_AGE = 365 * 24 * 60 * 60; // 1 year
 
+const ADMIN_EMAILS = ['zach.a.burger@gmail.com', 'skynewso94@gmail.com'];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function resolveRole(email, existingRole) {
+  if (ADMIN_EMAILS.includes(email)) return 'admin';
+  return existingRole || 'lead';
+}
+
 // ─── Upstash REST helpers ─────────────────────────────────────────────────────
 
 async function kvGet(key) {
@@ -28,6 +37,16 @@ async function kvGet(key) {
   const { result } = await res.json();
   if (!result) return null;
   try { return JSON.parse(result); } catch { return result; }
+}
+
+async function kvSet(key, value) {
+  const { KV_REST_API_URL, KV_REST_API_TOKEN } = process.env;
+  if (!KV_REST_API_URL || !KV_REST_API_TOKEN) return;
+  await fetch(KV_REST_API_URL, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${KV_REST_API_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(['SET', key, JSON.stringify(value)]),
+  });
 }
 
 // ─── Cookie helpers ───────────────────────────────────────────────────────────
@@ -53,10 +72,21 @@ export async function GET(request) {
   const email = readCookie(request, COOKIE_NAME);
   if (!email) return Response.json({ user: null }, { headers: CORS });
 
-  const user = await kvGet(`user:${email.toLowerCase()}`);
+  const key = email.toLowerCase();
+  let user = await kvGet(`user:${key}`);
+
+  // Auto-seed admin accounts that haven't logged in via survey
+  if (!user && ADMIN_EMAILS.includes(key)) {
+    user = { email: key, displayName: '', scores: Array(10).fill(0), role: 'admin', savedAt: new Date().toISOString() };
+    await kvSet(`user:${key}`, user);
+  }
+
   if (!user) return Response.json({ user: null }, { headers: CORS });
 
-  return Response.json({ user }, { headers: CORS });
+  const role = resolveRole(key, user.role);
+  if (user.role !== role) await kvSet(`user:${key}`, { ...user, role });
+
+  return Response.json({ user: { ...user, role } }, { headers: CORS });
 }
 
 export async function POST(request) {
@@ -66,7 +96,14 @@ export async function POST(request) {
   }
 
   const key = email.trim().toLowerCase();
-  const user = await kvGet(`user:${key}`);
+  let user = await kvGet(`user:${key}`);
+
+  // Auto-seed admin accounts on first login
+  if (!user && ADMIN_EMAILS.includes(key)) {
+    user = { email: key, displayName: '', scores: Array(10).fill(0), role: 'admin', savedAt: new Date().toISOString() };
+    await kvSet(`user:${key}`, user);
+  }
+
   if (!user) {
     return Response.json(
       { error: 'No account found for that email.' },
@@ -74,7 +111,10 @@ export async function POST(request) {
     );
   }
 
-  return Response.json({ user }, {
+  const role = resolveRole(key, user.role);
+  if (user.role !== role) await kvSet(`user:${key}`, { ...user, role });
+
+  return Response.json({ user: { ...user, role } }, {
     headers: { ...CORS, 'Set-Cookie': setCookieHeader(key) },
   });
 }
