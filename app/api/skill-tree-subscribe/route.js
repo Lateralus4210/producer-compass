@@ -19,6 +19,24 @@
 
 import { createSign } from 'crypto';
 
+const COOKIE_NAME = 'fp_email';
+const COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
+
+// ─── Upstash REST helper ──────────────────────────────────────────────────────
+
+async function kvSet(key, value) {
+  const { KV_REST_API_URL, KV_REST_API_TOKEN } = process.env;
+  if (!KV_REST_API_URL || !KV_REST_API_TOKEN) return;
+  await fetch(KV_REST_API_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${KV_REST_API_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(['SET', key, JSON.stringify(value)]),
+  });
+}
+
 const AREA_KEYS = [
   'composition', 'theory', 'daw', 'mixing', 'mastering',
   'collab', 'artwork', 'release', 'ideation', 'promo',
@@ -146,5 +164,19 @@ export async function POST(request) {
     }
   }
 
-  return Response.json({ ok: true }, { headers: CORS });
+  // Write to KV and set session cookie
+  const emailKey = email.trim().toLowerCase();
+  await kvSet(`user:${emailKey}`, {
+    email: emailKey,
+    displayName: displayName || name || '',
+    scores,
+    savedAt: new Date().toISOString(),
+  });
+
+  return Response.json({ ok: true }, {
+    headers: {
+      ...CORS,
+      'Set-Cookie': `${COOKIE_NAME}=${encodeURIComponent(emailKey)}; HttpOnly; Path=/; Max-Age=${COOKIE_MAX_AGE}; SameSite=Lax`,
+    },
+  });
 }
