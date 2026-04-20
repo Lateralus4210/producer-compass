@@ -66,18 +66,24 @@ async function createLeadStub(slug, name, email, scores) {
     `https://api.github.com/repos/${REPO}/contents/contacts/${slug}.md`,
     { headers }
   );
-  if (contactsCheck.ok) return;
+  if (contactsCheck.ok) {
+    console.log(`[lead-stub] skipped ${slug} — already in contacts/`);
+    return;
+  }
+
+  const dateDir = new Date().toISOString().split('T')[0];
 
   // Skip if already in leads/ on today's date (returning lead same day)
-  const dateDir = new Date().toISOString().split('T')[0];
   const leadsCheck = await fetch(
     `https://api.github.com/repos/${REPO}/contents/leads/${dateDir}/${slug}.md`,
     { headers }
   );
-  if (leadsCheck.ok) return;
+  if (leadsCheck.ok) {
+    console.log(`[lead-stub] skipped ${slug} — already in leads/${dateDir}/`);
+    return;
+  }
 
-  const dateDir = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-  await fetch(`https://api.github.com/repos/${REPO}/contents/leads/${dateDir}/${slug}.md`, {
+  const putRes = await fetch(`https://api.github.com/repos/${REPO}/contents/leads/${dateDir}/${slug}.md`, {
     method: 'PUT',
     headers: { ...headers, 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -85,6 +91,11 @@ async function createLeadStub(slug, name, email, scores) {
       content: Buffer.from(content).toString('base64'),
     }),
   });
+  if (putRes.ok) {
+    console.log(`[lead-stub] created leads/${dateDir}/${slug}.md`);
+  } else {
+    console.warn(`[lead-stub] GitHub write failed for ${slug}:`, putRes.status, await putRes.text());
+  }
 }
 
 // ─── Upstash REST helper ──────────────────────────────────────────────────────

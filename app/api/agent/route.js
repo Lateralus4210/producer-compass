@@ -43,7 +43,7 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-const LEAD_SOFT_LIMIT = 4;
+const LEAD_SOFT_LIMIT = 2;
 const LEAD_HARD_LIMIT = 15;
 
 // ─── Slug helper ──────────────────────────────────────────────────────────────
@@ -183,7 +183,7 @@ function applyContextUpdate(user, update) {
 
 // ─── System prompt ────────────────────────────────────────────────────────────
 
-function buildSystemPrompt({ scores, selectedAnswer, profile, context, homework, wins, level, messageCount, role }) {
+function buildSystemPrompt({ scores, selectedAnswer, profile, context, homework, wins, level, messageCount, role, displayName }) {
   const scoreBlock = AREA_KEYS.map((label, i) => `  ${label}: ${scores[i] ?? 0}/10`).join('\n');
 
   const parts = [
@@ -191,6 +191,10 @@ function buildSystemPrompt({ scores, selectedAnswer, profile, context, homework,
     FP_SCRIPT,
     `---\n## This Producer's Compass Scores\n${scoreBlock}`,
   ];
+
+  if (displayName) {
+    parts.push(`The producer's name is ${displayName}.`);
+  }
 
   if (selectedAnswer) {
     parts.push(`They identified this as their primary focus: "${selectedAnswer}"`);
@@ -277,6 +281,7 @@ export async function POST(request) {
       level: user?.level || 1,
       messageCount: user?.messageCount || 0,
       role: user?.role || 'lead',
+      displayName: user?.displayName || '',
     });
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -306,7 +311,8 @@ export async function POST(request) {
 
     // Detect call interest signal from agent
     const callInterest = message.includes('CALL_INTEREST_CONFIRMED');
-    const cleanMessage = message.replace('CALL_INTEREST_CONFIRMED', '').trimEnd();
+    const stripped = message.replace('CALL_INTEREST_CONFIRMED', '').trimEnd();
+    const cleanMessage = stripped || "That's the direction — let's get you on a call with Zach. We'll reach out to set it up.";
 
     // Update KV
     const newCount = (user?.messageCount || 0) + 1;

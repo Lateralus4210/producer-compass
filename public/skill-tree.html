@@ -449,18 +449,18 @@
 
     /* ── REVEAL SCREEN ───────────────────────────── */
     .reveal-screen {
-      overflow-y: auto; overflow-x: hidden;
+      overflow: hidden;
       justify-content: flex-start; align-items: center;
-      padding: 20px 20px 40px; gap: 0;
+      padding: 14px 16px 18px; gap: 0;
       flex-direction: column;
     }
     .reveal-body {
       width: 100%; max-width: 400px;
-      display: flex; flex-direction: column; gap: 10px; align-items: center;
-      margin-bottom: 20px;
+      display: flex; flex-direction: row; gap: 12px; align-items: flex-start;
+      margin-bottom: 14px;
     }
     .reveal-tree-wrap {
-      width: min(100%, 160px);
+      width: min(40%, 120px); flex-shrink: 0;
       animation: reveal-tree 0.75s cubic-bezier(0.34,1.56,0.64,1) both;
     }
     .reveal-tree-wrap svg { width: 100%; aspect-ratio: 1; height: auto; }
@@ -528,7 +528,7 @@
     .btn-download:disabled { opacity: 0.35; pointer-events: none; }
 
     /* ── REVEAL SCORES ───────────────────────────── */
-    .reveal-scores { width: 100%; display: flex; flex-direction: column; gap: 4px; }
+    .reveal-scores { flex: 1; display: flex; flex-direction: column; gap: 3px; }
 
     /* ── PARTICLES ───────────────────────────────── */
     #particles-host { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
@@ -571,12 +571,12 @@
     // ═══════════════════════════════════════════════
     const QUESTIONS = [
       // ── IDEATION (0) ─────────────────────────────
-      { area:0, q:"Can you name the primary genre of your own music?" },
+      { area:0, q:"Can you name the primary genre(s) of your own music?" },
       { area:0, q:"Have you intentionally listened to music outside your usual genre in the last 30 days?" },
       { area:0, q:"Have you started a new song idea in the last 30 days that you chose not to develop further?" },
-      { area:0, q:"I usually stay within the bounds of my usual genre.", inv:true },
+      { area:0, q:"I tend to stay within the bounds of my usual genre.", inv:true },
       { area:0, q:"I have a running log of new music I've discovered." },
-      { area:0, q:"I capture song ideas outside of my DAW." },
+      { area:0, q:"I have ways of capturing song ideas even when I'm not at my DAW." },
       { area:0, q:"I have created something recently with no intention of finishing it." },
 
       // ── COMPOSITION (1) ──────────────────────────
@@ -586,46 +586,46 @@
       { area:1, q:"I have finished the last three tracks I started." },
       { area:1, q:"When listening to music, I actively notice the song's structure." },
       { area:1, q:"I can describe how my most recent track is designed to feel different at the end than it does at the beginning." },
-      { area:1, q:"I am equally comfortable arranging a track with 2 elements as I am with 50." },
+      { area:1, q:"I am equally comfortable arranging a track with 3 elements as I am with 20." },
 
       // ── THEORY (2) ───────────────────────────────
       { area:2, q:"I believe music theory is there to tell me what I'm allowed and not allowed to do in my music.", inv:true },
       { area:2, q:"I can identify a C major chord on at least one instrument." },
       { area:2, q:"I know exactly what I would do in a 20 minute theory practice session." },
       { area:2, q:"I have used theory to analyze a song by an artist I admire." },
-      { area:2, q:"I sometimes use visual aids like diagrams or charts to understand theory concepts." },
-      { area:2, q:"I regularly produce at the full capacity of my music theory knowledge." },
+      { area:2, q:"I sometimes make visual aids like diagrams or charts to understand theory concepts." },
+      { area:2, q:"I feel sometimes that I'm not using my full capacity when it comes to my music theory knowledge.", inv:true },
       { area:2, q:"Learning music theory makes me feel less creative.", inv:true },
 
       // ── DAW (3) ──────────────────────────────────
       { area:3, q:"I feel fast in my DAW." },
       { area:3, q:"I have uninstalled or removed plugins from my setup in the last 6 months." },
+      { area:3, q:"I could explain my current workflow if someone asked me to." },
       { area:3, q:"I have questioned whether my current workflow still serves me in the last 30 days." },
       { area:3, q:"I have watched a tutorial or read documentation specifically about my DAW in the last 30 days." },
       { area:3, q:"I have opened my DAW at least twice in the last week." },
-      { area:3, q:"I have tried at least one other DAW besides my primary one." },
-      { area:3, q:"When I open my DAW with no idea, I know how to start anyway." },
+      { area:3, q:"When I open my DAW with no ideas, I know how to start anyway." },
 
       // ── MIXING (4) ───────────────────────────────
       { area:4, q:"I understand why mixing is considered a separate workflow from composing." },
       { area:4, q:"I know what the single most important tool in mixing is." },
-      { area:4, q:"I can name the three most essential effects in a mix." },
+      { area:4, q:"I have an idea what the three most essential effects in a mix are." },
       { area:4, q:"I have revisited a song to remix it in the last three months." },
-      { area:4, q:"I can predict what a plugin parameter will do before I move it." },
-      { area:4, q:"I have received feedback on a mix from another producer." },
+      { area:4, q:"I can predict what a plugin parameter will do before I tweak it." },
+      { area:4, q:"I regularly receive feedback on my mixes from other producers." },
       { area:4, q:"I have a mix I would feel confident sending to a mastering engineer today." },
 
       // ── MASTERING (5) ────────────────────────────
       { area:5, q:"I understand where the line is drawn between mixing and mastering." },
       { area:5, q:"I can look at a waveform and have an opinion on whether it needs mastering." },
       { area:5, q:"I know what the single most important tool in mastering is." },
-      { area:5, q:"I can name the three most essential tools in mastering." },
+      { area:5, q:"I have an idea what the three most essential tools in mastering are." },
       { area:5, q:"I have used a LUFS meter to check the loudness of a master." },
       { area:5, q:"I can master a track using only my ears, a reference track, and a limiter." },
       { area:5, q:"I can tell whether a track needs mastering just by looking at the waveform.", inv:true },
 
       // ── COLLAB (6) ───────────────────────────────
-      { area:6, q:"I recognize that working in isolation is one of the biggest obstacles a producer can face." },
+      { area:6, q:"Isolation as a producer is an obstacle I experience.", inv:true },
       { area:6, q:"I have shared an unfinished track with another producer in the last 30 days." },
       { area:6, q:"I have collaborated on a track with another producer in the last 6 months." },
       { area:6, q:"I am part of a music community I show up in regularly." },
@@ -634,19 +634,19 @@
       { area:6, q:"I have changed something in my music based on feedback from another producer." },
 
       // ── ARTWORK (7) ──────────────────────────────
-      { area:7, q:"I understand that visual presentation is part of a music release, not an afterthought." },
-      { area:7, q:"I have released a song with intentional cover art in the last 6 months." },
+      { area:7, q:"I think the visual presentation of my music is as important as the music itself." },
+      { area:7, q:"I know how to access royalty-free databases for artwork." },
       { area:7, q:"I have created video content related to my music in the last 30 days." },
       { area:7, q:"I have a consistent visual identity across my music platforms." },
       { area:7, q:"I regularly post content that isn't just finished music releases." },
-      { area:7, q:"I have studied how a visual artist I admire presents themselves online." },
+      { area:7, q:"I would consider myself good with graphic design." },
       { area:7, q:"I have delayed a release because the artwork wasn't ready.", inv:true },
 
       // ── RELEASE (8) ──────────────────────────────
-      { area:8, q:"Can you name at least two platforms that distribute music to streaming services?" },
+      { area:8, q:"I can name at least two platforms that distribute music to streaming services." },
       { area:8, q:"I have released at least one track through a distribution platform (DistroKid, TuneCore, etc.)." },
       { area:8, q:"I wait until a track sounds completely perfect before I release it.", inv:true },
-      { area:8, q:"My releases include correct metadata — artist name, title, genre, and ISRC code." },
+      { area:8, q:"My releases include correct metadata: artist name, title, genre, and ISRC code." },
       { area:8, q:"I build in a promotional window of at least one week before my release goes live." },
       { area:8, q:"I have pitched or submitted at least one release to a playlist curator or editorial opportunity." },
       { area:8, q:"I review performance data from my releases and use it to inform future ones." },
@@ -1239,7 +1239,7 @@
           lsClear();
           onReveal(email);
         } catch (err) {
-          setSubmitError(err.message || 'Something went wrong — please try again.');
+          setSubmitError(err.message || 'Something went wrong. Please try again.');
           setSubmitting(false);
         }
       };
@@ -1270,7 +1270,7 @@
           </div>
           <div className="email-gate">
             <h3>See your full Skill Tree.</h3>
-            <p>Enter your email to unlock your complete Producer Skill Tree — we'll show your full results on the next screen.</p>
+            <p>Enter your email to unlock your complete Producer Skill Tree. We'll show your full results on the next screen.</p>
             <div className="email-row">
               <input className={`email-input${showError ? ' invalid' : ''}`}
                 type="email" placeholder="producer@email.com"
@@ -1334,8 +1334,8 @@
             </div>
           </div>
           <div className="transition-options">
-            <h2 style={{ fontFamily: "'Libre Baskerville', Georgia, serif", fontSize: 'clamp(14px, 4vw, 18px)', fontWeight: 700, textAlign: 'center', marginBottom: 8, lineHeight: 1.4 }}>
-              What do you most want to change about where you are as a producer right now?
+            <h2 style={{ fontFamily: "'Libre Baskerville', Georgia, serif", fontSize: 'clamp(13px, 3.5vw, 16px)', fontWeight: 700, textAlign: 'center', marginBottom: 8, lineHeight: 1.4 }}>
+              Which one sounds like you?
             </h2>
             {lowest4.map(({ key }) => (
               <button key={key} className="btn-transition" onClick={() => onSelect(TRANSITION_ANSWERS[key])}>
@@ -1351,16 +1351,16 @@
     // TRANSITION SCREEN
     // ═══════════════════════════════════════════════
     const TRANSITION_ANSWERS = {
-      composition: "I want my tracks to feel more complete and intentional, not just loops.",
-      theory:      "I want to understand why my music works — or doesn't — instead of just guessing.",
-      daw:         "I want to stop fighting my DAW and actually move at the speed of my ideas.",
-      mixing:      "I want my mixes to sound competitive, not like they need to be fixed later.",
-      mastering:   "I want to understand how to get my music ready for release without outsourcing it.",
-      collab:      "I want to actually work with other people instead of always producing alone.",
-      artwork:     "I want my music to have a visual identity that matches what it sounds like.",
-      release:     "I want to stop sitting on finished tracks and actually get them out.",
-      ideation:    "I want to stop running out of ideas and start sessions with more direction.",
-      promo:       "I want people to hear my music — I just don't know how to reach them.",
+      composition: "My tracks never feel finished. I want structure.",
+      theory:      "I want to understand why my music works, instead of going by ear.",
+      daw:         "I want to stop fighting my DAW and move at the speed of my ideas.",
+      mixing:      "I want my mixes to sound competitive, not like they need fixing.",
+      mastering:   "I want to know how to get my music ready for release myself.",
+      collab:      "I want to actually work with other people instead of producing alone.",
+      artwork:     "I want a visual identity that matches what my music sounds like.",
+      release:     "I want to stop sitting on finished tracks and actually release them.",
+      ideation:    "I want to stop running out of ideas and start sessions with direction.",
+      promo:       "I want people to hear my music. I just don't know how to reach them.",
     };
 
     const AREA_KEY_ORDER = [
@@ -1376,7 +1376,7 @@
 
       return (
         <div className="screen transition-screen">
-          <h2>What do you most want to change about where you are as a producer right now?</h2>
+          <h2>Which one sounds like you?</h2>
           <div className="transition-options">
             {lowest4.map(({ key }) => (
               <button key={key} className="btn-transition" onClick={() => onSelect(TRANSITION_ANSWERS[key])}>
@@ -1391,9 +1391,9 @@
     // ═══════════════════════════════════════════════
     // AGENT SCREEN
     // ═══════════════════════════════════════════════
-    const AGENT_INFO = "Your FP Coach is here to support your work between sessions — trained on The FP's Compass framework and methodologies. FP+ members can log wins, earn XP, get homework, and dig into any aspect of music production.";
+    const AGENT_INFO = "Your FP Coach is trained on The FP's Compass framework and methodologies. FP+ members can log wins, earn XP, get homework, and dig into any aspect of music production.";
 
-    const WELCOME_MSG = "Welcome back. I'm your FP Coach — here to support your work between sessions, trained on The FP's Compass framework and methodologies. FP+ members can log wins, earn XP, complete homework, and dig into any aspect of music production. What's on your mind?";
+    const WELCOME_MSG = "Welcome back. I'm your FP Coach, trained on The FP's Compass framework and methodologies. FP+ members can log wins, earn XP, complete homework, and dig into any aspect of music production. What's on your mind?";
 
     function AgentInfoBtn() {
       const [show, setShow] = useState(false);
@@ -1411,6 +1411,8 @@
       const [messages, setMessages]   = useState([]);
       const [input, setInput]         = useState('');
       const [loading, setLoading]     = useState(false);
+      // showWarmup: true after first assistant reply on a fresh session (not returning)
+      const [showWarmup, setShowWarmup] = useState(false);
       const bottomRef                 = useRef(null);
       const hasOpened                 = useRef(false);
 
@@ -1420,14 +1422,14 @@
         if (isReturning) return; // welcome shown as static bubble; wait for user
         const opening = [{ role: 'user', content: selectedAnswer }];
         setMessages(opening);
-        call(opening);
+        call(opening, true);
       }, []);
 
       useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, [messages, loading]);
 
-      async function call(msgs) {
+      async function call(msgs, isFirst = false) {
         setLoading(true);
         try {
           const res = await fetch('/api/agent', {
@@ -1438,6 +1440,7 @@
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || 'Request failed');
           setMessages(m => [...m, { role: 'assistant', content: data.message }]);
+          if (isFirst) setShowWarmup(true);
         } catch (err) {
           setMessages(m => [...m, { role: 'assistant', content: `Error: ${err.message}` }]);
         } finally {
@@ -1445,12 +1448,13 @@
         }
       }
 
-      function send() {
-        const text = input.trim();
-        if (!text || loading) return;
-        const next = [...messages, { role: 'user', content: text }];
+      function send(text) {
+        const t = (text ?? input).trim();
+        if (!t || loading) return;
+        const next = [...messages, { role: 'user', content: t }];
         setMessages(next);
         setInput('');
+        setShowWarmup(false);
         call(next);
       }
 
@@ -1485,21 +1489,37 @@
             )}
             <div ref={bottomRef} />
           </div>
-          <div className="agent-input-row">
-            <textarea
-              className="agent-input"
-              placeholder="Reply…"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={onKey}
-              rows={1}
-            />
-            <button className="btn-agent-send" onClick={send} disabled={loading || !input.trim()}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M14 8L2 2l2.5 6L2 14l12-6z" fill="currentColor"/>
-              </svg>
-            </button>
-          </div>
+          {showWarmup && !loading ? (
+            <div style={{ display: 'flex', gap: 8, padding: '10px 16px', borderTop: '1px solid #1a1a1a' }}>
+              {['Yes', 'No'].map(label => (
+                <button key={label} onClick={() => send(label)} style={{
+                  flex: 1, padding: '10px 0', fontSize: 14, fontWeight: 600,
+                  background: '#111', border: '1px solid #333', borderRadius: 10,
+                  color: '#ccc', cursor: 'pointer', fontFamily: 'inherit',
+                  transition: 'border-color 0.12s, color 0.12s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#666'; e.currentTarget.style.color = '#fff'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.color = '#ccc'; }}
+                >{label}</button>
+              ))}
+            </div>
+          ) : (
+            <div className="agent-input-row">
+              <textarea
+                className="agent-input"
+                placeholder="Reply…"
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={onKey}
+                rows={1}
+              />
+              <button className="btn-agent-send" onClick={() => send()} disabled={loading || !input.trim()}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M14 8L2 2l2.5 6L2 14l12-6z" fill="currentColor"/>
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
       );
     }
@@ -1659,7 +1679,7 @@
                 {/* Qualified leads */}
                 <div>
                   <div style={{ fontSize: 11, color: '#F0C400', fontWeight: 700, letterSpacing: '0.08em', marginBottom: 8 }}>
-                    QUALIFIED — {data.qualified.length}
+                    QUALIFIED ({data.qualified.length})
                   </div>
                   {data.qualified.length > 0
                     ? <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -1718,8 +1738,8 @@
     ];
     function TitleScreen({ onStart, onReturning, welcomeBack }) {
       const h1Ref = useRef(null);
-      const [marqueeW, setMarqueeW]   = useState(0);
-      const [loginType, setLoginType] = useState(null); // 'free' | 'client' | null
+      const [marqueeW, setMarqueeW]     = useState(0);
+      const [showLogin, setShowLogin]   = useState(false);
       const [loginEmail, setLoginEmail] = useState('');
       const [loginError, setLoginError] = useState(null);
       const [loginLoading, setLoginLoading] = useState(false);
@@ -1747,21 +1767,6 @@
         }
       };
 
-      const secondaryBtn = (label, type) => (
-        <button
-          onClick={() => setLoginType(loginType === type ? null : type)}
-          style={{
-            flex: 1, padding: '11px 0', fontSize: 13, fontWeight: 600,
-            background: loginType === type ? '#1a1a1a' : 'none',
-            border: `1px solid ${loginType === type ? '#555' : '#2a2a2a'}`,
-            borderRadius: 10, color: loginType === type ? '#ccc' : '#555',
-            cursor: 'pointer', transition: 'all 0.15s', fontFamily: 'inherit',
-          }}
-          onMouseEnter={e => { if (loginType !== type) { e.currentTarget.style.borderColor = '#444'; e.currentTarget.style.color = '#888'; }}}
-          onMouseLeave={e => { if (loginType !== type) { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.color = '#555'; }}}
-        >{label}</button>
-      );
-
       return (
         <div className="screen title-screen">
           <h1 className="title-h1" ref={h1Ref}><span className="sub">Your music production</span><br/><em>Skill Tree</em></h1>
@@ -1779,23 +1784,31 @@
           </div>
           {welcomeBack && (
             <p style={{ color: '#aaa', fontSize: 13, margin: '0 0 4px', textAlign: 'center' }}>
-              Welcome back — take the Compass to continue.
+              Welcome back. Take the Compass to continue.
             </p>
           )}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, width: '100%', maxWidth: 280 }}>
             <button className="btn-primary" onClick={onStart} style={{ width: '100%' }}>
-              New user
+              Start
             </button>
-            <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-              {secondaryBtn('Free user', 'free')}
-              {secondaryBtn('Compass Client', 'client')}
-            </div>
-            {loginType && (
+            <button
+              onClick={() => setShowLogin(!showLogin)}
+              style={{
+                width: '100%', padding: '11px 0', fontSize: 13, fontWeight: 600,
+                background: showLogin ? '#1a1a1a' : 'none',
+                border: `1px solid ${showLogin ? '#555' : '#2a2a2a'}`,
+                borderRadius: 10, color: showLogin ? '#ccc' : '#555',
+                cursor: 'pointer', transition: 'all 0.15s', fontFamily: 'inherit',
+              }}
+              onMouseEnter={e => { if (!showLogin) { e.currentTarget.style.borderColor = '#444'; e.currentTarget.style.color = '#888'; }}}
+              onMouseLeave={e => { if (!showLogin) { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.color = '#555'; }}}
+            >Log In</button>
+            {showLogin && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
                 <div style={{ display: 'flex', gap: 8, width: '100%' }}>
                   <input
                     type="email"
-                    placeholder={loginType === 'client' ? 'client@email.com' : 'your@email.com'}
+                    placeholder="your@email.com"
                     value={loginEmail} autoFocus
                     onChange={e => setLoginEmail(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleLogin()}
