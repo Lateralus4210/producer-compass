@@ -22,6 +22,69 @@ import { createSign } from 'crypto';
 const COOKIE_NAME = 'fp_email';
 const COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 
+const REPO = 'Lateralus4210/the-free-producer';
+
+const AREA_LABELS = [
+  'Composition', 'Music Theory', 'DAW Proficiency', 'Mixing', 'Mastering',
+  'Collaboration', 'Artwork/Content', 'Release Process', 'Ideation', 'Promo',
+];
+
+function emailToSlug(email) {
+  return email.trim().toLowerCase().replace(/\./g, '');
+}
+
+// Creates leads/{slug}.md stub. Skips if already in contacts/ (existing member)
+// or already in leads/ (returning lead).
+async function createLeadStub(slug, name, email, scores) {
+  const { GITHUB_TOKEN } = process.env;
+  if (!GITHUB_TOKEN) return;
+
+  const now = new Date().toISOString();
+  const scoreLines = AREA_LABELS.map((label, i) => `  ${label}: ${scores[i] ?? 0}`).join('\n');
+  const content = [
+    '---',
+    `name: ${name || email}`,
+    `email: ${email}`,
+    `submitted: ${now}`,
+    `call_interest: false`,
+    `message_count: 0`,
+    `role: lead`,
+    `scores:`,
+    scoreLines,
+    '---',
+    '',
+    `# ${name || email}`,
+    '',
+    `_Submitted via Skill Tree on ${now}_`,
+    '',
+  ].join('\n');
+
+  const headers = { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github.v3+json' };
+
+  // Skip if already in contacts/ (existing member)
+  const contactsCheck = await fetch(
+    `https://api.github.com/repos/${REPO}/contents/contacts/${slug}.md`,
+    { headers }
+  );
+  if (contactsCheck.ok) return;
+
+  // Skip if already in leads/ (returning lead — don't overwrite existing conversation)
+  const leadsCheck = await fetch(
+    `https://api.github.com/repos/${REPO}/contents/leads/${slug}.md`,
+    { headers }
+  );
+  if (leadsCheck.ok) return;
+
+  await fetch(`https://api.github.com/repos/${REPO}/contents/leads/${slug}.md`, {
+    method: 'PUT',
+    headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message: `lead: ${slug}`,
+      content: Buffer.from(content).toString('base64'),
+    }),
+  });
+}
+
 // ─── Upstash REST helper ──────────────────────────────────────────────────────
 
 async function kvSet(key, value) {
@@ -40,7 +103,7 @@ async function kvSet(key, value) {
 const AREA_KEYS = [
   'composition', 'theory', 'daw', 'mixing', 'mastering',
   'collab', 'artwork', 'release', 'ideation', 'promo',
-];
+]; // MailerLite field names (short form)
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -170,8 +233,13 @@ export async function POST(request) {
     email: emailKey,
     displayName: displayName || name || '',
     scores,
+    role: 'lead',
+    messageCount: 0,
     savedAt: new Date().toISOString(),
   });
+
+  // Create lead stub in GitHub (skips if already a member or returning lead)
+  await createLeadStub(emailToSlug(emailKey), displayName || name || '', emailKey, scores);
 
   return Response.json({ ok: true }, {
     headers: {

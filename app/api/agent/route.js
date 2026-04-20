@@ -2,27 +2,22 @@
  * Next.js API Route — FP Agent
  * POST /api/agent
  *
- * Receives conversation state, injects Skill Tree context + member profile into
- * system prompt, calls Claude API, returns assistant response.
+ * Loads contact profile from contacts/{slug}.md or leads/{slug}.md,
+ * injects into system prompt, calls Claude, appends exchange to file.
+ * Slug = email with dots stripped (rsonic9@gmail.com → rsonic9@gmailcom).
  *
  * Payload: { email, scores: number[10], selectedAnswer, messages: [{role, content}] }
- *
- * Member context flow:
- *   1. Look up user in KV by email
- *   2. If user has a contactSlug, fetch their contacts/*.md from GitHub (24h TTL)
- *   3. Inject profile + live coaching context into system prompt
- *   4. Claude may emit a {"_ctx":{...}} block at end of response to signal updates
- *   5. Route strips that block and writes updates (wins, homework, notes) back to KV
  *
  * Env vars required:
  *   ANTHROPIC_API_KEY
  *   KV_REST_API_URL / KV_REST_API_TOKEN   (Upstash)
- *   GITHUB_TOKEN                           (fine-grained PAT, read Contents on ZMT-Agent repo)
- *   GITHUB_CONTACTS_REPO                   (e.g. Lateralus4210/ZMT-Agent)
+ *   GITHUB_TOKEN                           (fine-grained PAT, read+write Contents on this repo)
  */
 
 import { readFileSync } from 'fs';
 import { join } from 'path';
+
+const REPO = 'Lateralus4210/the-free-producer';
 
 // ─── Static context ───────────────────────────────────────────────────────────
 
@@ -47,6 +42,74 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
+const LEAD_SOFT_LIMIT = 8;
+const LEAD_HARD_LIMIT = 15;
+
+// ─── Slug helper ──────────────────────────────────────────────────────────────
+
+function emailToSlug(email) {
+  return email.trim().toLowerCase().replace(/\./g, '');
+}
+
+// ─── GitHub helpers ───────────────────────────────────────────────────────────
+
+// Returns { content, sha, dir } or null. Checks contacts/ then leads/.
+async function fetchContactFile(slug) {
+  const { GITHUB_TOKEN } = process.env;
+  if (!GITHUB_TOKEN) return null;
+
+  for (const dir of ['contacts', 'leads']) {
+    const res = await fetch(
+      `https://api.github.com/repos/${REPO}/contents/${dir}/${slug}.md`,
+      { headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github.v3+json' } }
+    );
+    if (res.ok) {
+      const data = await res.json();
+      const content = Buffer.from(data.content.replace(/\n/g, ''), 'base64').toString('utf8');
+      return { content, sha: data.sha, dir };
+    }
+  }
+  return null;
+}
+
+async function writeContactFile(dir, slug, content, sha) {
+  const { GITHUB_TOKEN } = process.env;
+  if (!GITHUB_TOKEN) return;
+
+  const body = {
+    message: `agent: update ${slug}`,
+    content: Buffer.from(content).toString('base64'),
+  };
+  if (sha) body.sha = sha;
+
+  const res = await fetch(
+    `https://api.github.com/repos/${REPO}/contents/${dir}/${slug}.md`,
+    {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }
+  );
+  if (!res.ok) {
+    console.warn(`GitHub write failed for ${dir}/${slug}.md:`, res.status, await res.text());
+  }
+}
+
+// Returns only the profile section (everything before ## Conversation Log)
+function profileSection(content) {
+  const logIdx = content.indexOf('## Conversation Log');
+  return logIdx === -1 ? content : content.slice(0, logIdx).trimEnd();
+}
+
+function appendExchange(content, userMsg, assistantMsg) {
+  const ts = new Date().toISOString();
+  const block = `\n\n**[${ts}]**\n\n> ${userMsg.replace(/\n/g, '\n> ')}\n\n${assistantMsg}`;
+  if (content.includes('## Conversation Log')) {
+    return content.trimEnd() + block;
+  }
+  return content.trimEnd() + '\n\n## Conversation Log' + block;
+}
+
 // ─── KV helpers ───────────────────────────────────────────────────────────────
 
 async function kvGet(key) {
@@ -70,61 +133,11 @@ async function kvSet(key, value) {
   });
 }
 
-// ─── GitHub contacts fetch ────────────────────────────────────────────────────
-
-const PROFILE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
-
-async function fetchContactFromGitHub(slug) {
-  const { GITHUB_TOKEN, GITHUB_CONTACTS_REPO } = process.env;
-  if (!GITHUB_TOKEN || !GITHUB_CONTACTS_REPO) return null;
-
-  const url = `https://api.github.com/repos/${GITHUB_CONTACTS_REPO}/contents/contacts/${slug}.md`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      Accept: 'application/vnd.github.raw+json',
-    },
-  });
-
-  if (!res.ok) {
-    console.warn(`GitHub contacts fetch failed for ${slug}: ${res.status}`);
-    return null;
-  }
-
-  return res.text();
-}
-
-async function getContactProfile(user) {
-  if (!user?.contactSlug) return null;
-
-  const profileStale =
-    !user.profileFetchedAt ||
-    Date.now() - new Date(user.profileFetchedAt).getTime() > PROFILE_TTL_MS;
-
-  if (!profileStale && user.profile) return user.profile;
-
-  const fresh = await fetchContactFromGitHub(user.contactSlug);
-  if (fresh) {
-    // Write back to KV in background — don't await (don't block response)
-    const key = `user:${user.email}`;
-    kvSet(key, { ...user, profile: fresh, profileFetchedAt: new Date().toISOString() });
-    return fresh;
-  }
-
-  return user.profile || null;
-}
-
 // ─── Context update parsing ───────────────────────────────────────────────────
-//
-// The agent may append a JSON block to its response to signal state changes:
-//   {"_ctx":{"wins":["..."],"homework":"...","notes":"..."}}
-//
-// All keys are optional. The block is stripped before the response reaches the user.
 
 function parseContextUpdate(text) {
   const match = text.match(/\n\{"_ctx":\s*(\{[\s\S]*?\})\s*\}\s*$/);
   if (!match) return { clean: text, update: null };
-
   const clean = text.slice(0, text.length - match[0].length).trimEnd();
   try {
     return { clean, update: JSON.parse(match[1]) };
@@ -135,7 +148,6 @@ function parseContextUpdate(text) {
 
 function applyContextUpdate(user, update) {
   if (!update) return user;
-
   const now = new Date().toISOString();
   let { context = '', wins = [], xp = 0, level = 1, homework = null } = user;
 
@@ -144,23 +156,18 @@ function applyContextUpdate(user, update) {
     xp = xp + update.wins.length * 10;
     level = Math.floor(xp / 50) + 1;
   }
-
   if (update.homework) {
     homework = { text: update.homework, assignedAt: now, completed: false };
   }
-
   if (update.notes) {
-    context = context
-      ? `${context}\n\n[${now}]\n${update.notes}`
-      : `[${now}]\n${update.notes}`;
+    context = context ? `${context}\n\n[${now}]\n${update.notes}` : `[${now}]\n${update.notes}`;
   }
-
   return { ...user, context, wins, xp, level, homework };
 }
 
-// ─── System prompt assembly ───────────────────────────────────────────────────
+// ─── System prompt ────────────────────────────────────────────────────────────
 
-function buildSystemPrompt({ scores, selectedAnswer, profile, context, homework, wins, level }) {
+function buildSystemPrompt({ scores, selectedAnswer, profile, context, homework, wins, level, messageCount, role }) {
   const scoreBlock = AREA_KEYS.map((label, i) => `  ${label}: ${scores[i] ?? 0}/10`).join('\n');
 
   const parts = [
@@ -173,20 +180,23 @@ function buildSystemPrompt({ scores, selectedAnswer, profile, context, homework,
   }
 
   if (profile) {
-    parts.push(`---\n## Member Profile (from FP contacts database)\n${profile}`);
+    parts.push(`---\n## Member Profile\n${profile}`);
   }
 
-  if (context || homework || (wins?.length)) {
-    const sessionLines = [];
-    if (level > 1) sessionLines.push(`Level: ${level}`);
-    if (homework && !homework.completed) sessionLines.push(`Current homework: ${homework.text}`);
-    if (wins?.length) {
-      const recent = wins.slice(-5).map(w => `- ${w.text}`).join('\n');
-      sessionLines.push(`Recent wins:\n${recent}`);
-    }
-    if (context) sessionLines.push(`Coaching notes:\n${context}`);
-    if (sessionLines.length) {
-      parts.push(`---\n## Live Coaching Context\n${sessionLines.join('\n\n')}`);
+  if (context || homework || wins?.length) {
+    const lines = [];
+    if (level > 1) lines.push(`Level: ${level}`);
+    if (homework && !homework.completed) lines.push(`Current homework: ${homework.text}`);
+    if (wins?.length) lines.push(`Recent wins:\n${wins.slice(-5).map(w => `- ${w.text}`).join('\n')}`);
+    if (context) lines.push(`Coaching notes:\n${context}`);
+    if (lines.length) parts.push(`---\n## Live Coaching Context\n${lines.join('\n\n')}`);
+  }
+
+  // Guide leads toward a call as the limit approaches
+  if (role !== 'admin' && role !== 'member') {
+    const remaining = LEAD_HARD_LIMIT - (messageCount || 0);
+    if (remaining <= LEAD_HARD_LIMIT - LEAD_SOFT_LIMIT) {
+      parts.push(`---\nThis producer has ${remaining} free message${remaining === 1 ? '' : 's'} remaining. Naturally move the conversation toward asking if they'd be open to a Compass call with Zach. If they say yes or express clear interest, end your response with the exact token: CALL_INTEREST_CONFIRMED`);
     }
   }
 
@@ -210,23 +220,35 @@ export async function OPTIONS() {
 export async function POST(request) {
   try {
     if (!process.env.ANTHROPIC_API_KEY) {
-      console.error('ANTHROPIC_API_KEY is not set');
       return Response.json({ error: 'Server misconfiguration: missing API key' }, { status: 500, headers: CORS });
     }
 
     const { email, scores, selectedAnswer, messages } = await request.json();
 
-    if (!messages || !messages.length) {
+    if (!messages?.length) {
       return Response.json({ error: 'Missing messages' }, { status: 400, headers: CORS });
     }
 
-    // Load member context from KV + GitHub
-    let user = null;
-    if (email) {
-      user = await kvGet(`user:${email.trim().toLowerCase()}`);
+    const emailKey = email ? email.trim().toLowerCase() : null;
+    const slug = emailKey ? emailToSlug(emailKey) : null;
+
+    // Load KV user and GitHub contact file in parallel
+    const [user, contactFile] = await Promise.all([
+      emailKey ? kvGet(`user:${emailKey}`) : Promise.resolve(null),
+      slug ? fetchContactFile(slug) : Promise.resolve(null),
+    ]);
+
+    // Hard limit for leads
+    if (user && user.role !== 'admin' && user.role !== 'member') {
+      if ((user.messageCount || 0) >= LEAD_HARD_LIMIT) {
+        return Response.json({
+          message: "You've reached the free conversation limit. To keep going, the next step is a Compass call — that's where the real work happens. If you're open to it, let us know and we'll be in touch.",
+          limitReached: true,
+        }, { headers: CORS });
+      }
     }
 
-    const profile = user ? await getContactProfile(user) : null;
+    const profile = contactFile ? profileSection(contactFile.content) : null;
 
     const systemPrompt = buildSystemPrompt({
       scores: scores || Array(10).fill(0),
@@ -236,6 +258,8 @@ export async function POST(request) {
       homework: user?.homework || null,
       wins: user?.wins || [],
       level: user?.level || 1,
+      messageCount: user?.messageCount || 0,
+      role: user?.role || 'lead',
     });
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -261,26 +285,40 @@ export async function POST(request) {
 
     const data = await res.json();
     const rawText = data.content[0].text;
-
-    // Parse and save any context updates the agent emitted
     const { clean: message, update } = parseContextUpdate(rawText);
 
-    if (update && user) {
-      const updated = applyContextUpdate(user, update);
-      kvSet(`user:${user.email}`, updated); // fire-and-forget
+    // Detect call interest signal from agent
+    const callInterest = message.includes('CALL_INTEREST_CONFIRMED');
+    const cleanMessage = message.replace('CALL_INTEREST_CONFIRMED', '').trimEnd();
+
+    // Update KV
+    const newCount = (user?.messageCount || 0) + 1;
+    const atSoftLimit = newCount >= LEAD_SOFT_LIMIT && newCount < LEAD_HARD_LIMIT;
+    let updatedUser = { ...(user || { email: emailKey }), messageCount: newCount };
+    if (update) updatedUser = applyContextUpdate(updatedUser, update);
+    if (callInterest) updatedUser = { ...updatedUser, call_interest: true, call_interest_at: new Date().toISOString() };
+    if (emailKey) kvSet(`user:${emailKey}`, updatedUser); // fire-and-forget
+
+    // Append exchange to GitHub contact file
+    if (contactFile && slug && messages.length > 0) {
+      const lastUserMsg = messages[messages.length - 1]?.content || '';
+      const updatedContent = appendExchange(contactFile.content, lastUserMsg, cleanMessage);
+      await writeContactFile(contactFile.dir, slug, updatedContent, contactFile.sha);
     }
 
-    // Return visible message + any XP/level changes the UI might want
-    const responsePayload = { message };
+    // Build response payload
+    const payload = { message: cleanMessage };
     if (update && user) {
       const updated = applyContextUpdate(user, update);
-      if (updated.xp !== user.xp) responsePayload.xp = updated.xp;
-      if (updated.level !== user.level) responsePayload.level = updated.level;
-      if (update.wins?.length) responsePayload.wins = update.wins;
-      if (update.homework) responsePayload.homework = update.homework;
+      if (updated.xp !== (user.xp || 0)) payload.xp = updated.xp;
+      if (updated.level !== (user.level || 1)) payload.level = updated.level;
+      if (update.wins?.length) payload.wins = update.wins;
+      if (update.homework) payload.homework = update.homework;
     }
+    if (callInterest) payload.callInterest = true;
+    if (atSoftLimit && user?.role !== 'admin' && user?.role !== 'member') payload.softLimit = true;
 
-    return Response.json(responsePayload, { headers: CORS });
+    return Response.json(payload, { headers: CORS });
 
   } catch (err) {
     console.error('Agent route unhandled error:', err);
