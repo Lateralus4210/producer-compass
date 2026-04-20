@@ -1505,41 +1505,138 @@
     }
 
     // ═══════════════════════════════════════════════
+    // ADMIN HOME SCREEN
+    // ═══════════════════════════════════════════════
+    function AdminHomeScreen({ onCollect, onRoleplay }) {
+      const [rpEmail, setRpEmail]     = useState('');
+      const [rpError, setRpError]     = useState(null);
+      const [rpLoading, setRpLoading] = useState(false);
+      const [showRp, setShowRp]       = useState(false);
+
+      const handleRoleplay = async () => {
+        if (!rpEmail.trim() || rpLoading) return;
+        setRpLoading(true);
+        setRpError(null);
+        try {
+          const res = await fetch('/api/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: rpEmail.trim() }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'No account found.');
+          onRoleplay(data.user);
+        } catch (err) {
+          setRpError(err.message);
+          setRpLoading(false);
+        }
+      };
+
+      const adminBtn = (label, onClick, accent) => (
+        <button onClick={onClick} style={{
+          width: '100%', padding: '14px 0', fontSize: 14, fontWeight: 700,
+          background: accent ? '#F0C400' : 'none',
+          border: `1px solid ${accent ? '#F0C400' : '#333'}`,
+          borderRadius: 10, color: accent ? '#000' : '#888',
+          cursor: 'pointer', fontFamily: 'inherit',
+          transition: 'opacity 0.15s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+        onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+        >{label}</button>
+      );
+
+      return (
+        <div className="screen agent-screen">
+          <div className="agent-header">
+            <div className="agent-header-dot" style={{ background: '#F0C400' }} />
+            <div className="agent-header-label">Admin</div>
+          </div>
+          <div className="agent-messages" style={{ padding: '24px 16px', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 280, margin: '0 auto' }}>
+              {adminBtn('Collect', onCollect, true)}
+              {!showRp
+                ? adminBtn('Roleplay as user', () => setShowRp(true), false)
+                : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input
+                        type="email" placeholder="user@email.com" value={rpEmail} autoFocus
+                        onChange={e => setRpEmail(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleRoleplay()}
+                        style={{
+                          flex: 1, background: '#0e0e0e', border: '1px solid #333', color: '#fff',
+                          borderRadius: 8, padding: '8px 12px', fontSize: 13,
+                          fontFamily: 'inherit', outline: 'none',
+                        }}
+                      />
+                      <button onClick={handleRoleplay} disabled={rpLoading || !rpEmail.trim()} style={{
+                        background: '#333', color: '#fff', border: 'none', borderRadius: 8,
+                        padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                        opacity: (rpLoading || !rpEmail.trim()) ? 0.4 : 1, flexShrink: 0,
+                      }}>
+                        {rpLoading ? '…' : 'Go'}
+                      </button>
+                    </div>
+                    {rpError && <div style={{ fontSize: 11, color: '#FC8181' }}>{rpError}</div>}
+                  </div>
+                )
+              }
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ═══════════════════════════════════════════════
     // COLLECT SCREEN (admin only)
     // ═══════════════════════════════════════════════
     function CollectScreen() {
-      const [data, setData]     = useState(null);
-      const [loading, setLoading] = useState(true);
-      const [error, setError]   = useState(null);
+      const [data, setData]         = useState(null);
+      const [loading, setLoading]   = useState(true);
+      const [error, setError]       = useState(null);
+      const [days, setDays]         = useState(7);
+      const [showContacts, setShowContacts] = useState(false);
 
-      useEffect(() => {
-        fetch('/api/collect')
+      const load = (d) => {
+        setLoading(true);
+        fetch(`/api/collect?days=${d}`)
           .then(r => r.json())
-          .then(d => { setData(d); setLoading(false); })
+          .then(res => { setData(res); setLoading(false); })
           .catch(e => { setError(e.message); setLoading(false); });
-      }, []);
+      };
 
-      const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—';
+      useEffect(() => { load(days); }, []);
 
-      function LeadRow({ u, highlight }) {
+      const switchDays = (d) => { setDays(d); load(d); };
+
+      const fmtDate = iso => iso
+        ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        : '—';
+
+      const pill = (label, active, onClick) => (
+        <button onClick={onClick} style={{
+          padding: '4px 10px', fontSize: 11, fontWeight: 600, borderRadius: 20,
+          background: active ? '#F0C40020' : 'none',
+          border: `1px solid ${active ? '#F0C40060' : '#2a2a2a'}`,
+          color: active ? '#F0C400' : '#444', cursor: 'pointer', fontFamily: 'inherit',
+        }}>{label}</button>
+      );
+
+      function QualifiedRow({ u }) {
         return (
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '10px 14px', borderRadius: 8,
-            background: highlight ? '#1a1600' : '#0f0f0f',
-            border: `1px solid ${highlight ? '#F0C40030' : '#1e1e1e'}`,
+            background: '#1a1600', border: '1px solid #F0C40025',
           }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span style={{ fontSize: 13, color: highlight ? '#F0C400' : '#ccc', fontWeight: 600 }}>
-                {u.email}
-              </span>
-              {u.displayName && (
-                <span style={{ fontSize: 11, color: '#555' }}>{u.displayName}</span>
-              )}
+              <span style={{ fontSize: 13, color: '#F0C400', fontWeight: 600 }}>{u.email}</span>
+              {u.displayName && <span style={{ fontSize: 11, color: '#555' }}>{u.displayName}</span>}
             </div>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-              <span style={{ fontSize: 11, color: '#555' }}>{u.messageCount || 0} msgs</span>
-              <span style={{ fontSize: 11, color: '#444' }}>{fmtDate(u.call_interest_at || u.savedAt)}</span>
+            <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+              <span style={{ fontSize: 11, color: '#666' }}>{u.messageCount || 0} msgs</span>
+              <span style={{ fontSize: 11, color: '#444' }}>{fmtDate(u.call_interest_at)}</span>
             </div>
           </div>
         );
@@ -1550,35 +1647,58 @@
           <div className="agent-header">
             <div className="agent-header-dot" style={{ background: '#F0C400' }} />
             <div className="agent-header-label">Collect</div>
+            <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
+              {[1, 7, 30].map(d => pill(`${d}d`, days === d, () => switchDays(d)))}
+            </div>
           </div>
-          <div className="agent-messages" style={{ padding: '16px 12px' }}>
+          <div className="agent-messages" style={{ padding: '16px 12px', gap: 20 }}>
             {loading && <div style={{ color: '#555', fontSize: 13, textAlign: 'center' }}>Loading…</div>}
             {error && <div style={{ color: '#FC8181', fontSize: 13 }}>{error}</div>}
             {data && (
               <>
-                {data.interested.length > 0 && (
-                  <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 11, color: '#F0C400', fontWeight: 700, letterSpacing: '0.08em', marginBottom: 8 }}>
-                      CALL INTEREST — {data.interested.length}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {data.interested.map(u => <LeadRow key={u.email} u={u} highlight />)}
-                    </div>
-                  </div>
-                )}
+                {/* Qualified leads */}
                 <div>
-                  <div style={{ fontSize: 11, color: '#555', fontWeight: 700, letterSpacing: '0.08em', marginBottom: 8 }}>
-                    ALL LEADS — {data.total}
+                  <div style={{ fontSize: 11, color: '#F0C400', fontWeight: 700, letterSpacing: '0.08em', marginBottom: 8 }}>
+                    QUALIFIED — {data.qualified.length}
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {data.others.map(u => <LeadRow key={u.email} u={u} highlight={false} />)}
-                    {data.others.length === 0 && data.interested.length === 0 && (
-                      <div style={{ color: '#444', fontSize: 13 }}>No leads yet.</div>
-                    )}
-                  </div>
+                  {data.qualified.length > 0
+                    ? <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {data.qualified.map(u => <QualifiedRow key={u.email} u={u} />)}
+                      </div>
+                    : <div style={{ fontSize: 13, color: '#333' }}>No qualified leads yet.</div>
+                  }
                 </div>
-                <div style={{ marginTop: 20, fontSize: 11, color: '#333', textAlign: 'right' }}>
-                  as of {new Date(data.asOf).toLocaleTimeString()}
+
+                {/* Unqualified count */}
+                <div style={{
+                  padding: '12px 14px', borderRadius: 8, background: '#0f0f0f', border: '1px solid #1e1e1e',
+                }}>
+                  <span style={{ fontSize: 13, color: '#555' }}>
+                    <span style={{ color: '#888', fontWeight: 600 }}>{data.unqualifiedRecentCount}</span>
+                    {` new unqualified lead${data.unqualifiedRecentCount !== 1 ? 's' : ''} in the last ${days} day${days !== 1 ? 's' : ''}`}
+                    {data.unqualifiedCount > data.unqualifiedRecentCount && (
+                      <span style={{ color: '#444' }}> · {data.unqualifiedCount} total</span>
+                    )}
+                  </span>
+                </div>
+
+                {/* Contacts (collapsed) */}
+                <div>
+                  <button onClick={() => setShowContacts(s => !s)} style={{
+                    fontSize: 11, color: '#333', background: 'none', border: 'none',
+                    cursor: 'pointer', padding: 0, fontFamily: 'inherit',
+                  }}>
+                    {showContacts ? '▾' : '▸'} {data.contactsCount} Compass client{data.contactsCount !== 1 ? 's' : ''}
+                  </button>
+                  {showContacts && (
+                    <div style={{ marginTop: 8, fontSize: 12, color: '#444' }}>
+                      Client details available in contacts/ directory.
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ fontSize: 11, color: '#2a2a2a', textAlign: 'right' }}>
+                  {new Date(data.asOf).toLocaleTimeString()}
                 </div>
               </>
             )}
@@ -1598,8 +1718,8 @@
     ];
     function TitleScreen({ onStart, onReturning, welcomeBack }) {
       const h1Ref = useRef(null);
-      const [marqueeW, setMarqueeW] = useState(0);
-      const [showLogin, setShowLogin] = useState(false);
+      const [marqueeW, setMarqueeW]   = useState(0);
+      const [loginType, setLoginType] = useState(null); // 'free' | 'client' | null
       const [loginEmail, setLoginEmail] = useState('');
       const [loginError, setLoginError] = useState(null);
       const [loginLoading, setLoginLoading] = useState(false);
@@ -1619,13 +1739,28 @@
             body: JSON.stringify({ email: loginEmail.trim() }),
           });
           const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'Not found');
+          if (!res.ok) throw new Error(data.error || 'No account found for that email.');
           onReturning(data.user);
         } catch (err) {
           setLoginError(err.message);
           setLoginLoading(false);
         }
       };
+
+      const secondaryBtn = (label, type) => (
+        <button
+          onClick={() => setLoginType(loginType === type ? null : type)}
+          style={{
+            flex: 1, padding: '11px 0', fontSize: 13, fontWeight: 600,
+            background: loginType === type ? '#1a1a1a' : 'none',
+            border: `1px solid ${loginType === type ? '#555' : '#2a2a2a'}`,
+            borderRadius: 10, color: loginType === type ? '#ccc' : '#555',
+            cursor: 'pointer', transition: 'all 0.15s', fontFamily: 'inherit',
+          }}
+          onMouseEnter={e => { if (loginType !== type) { e.currentTarget.style.borderColor = '#444'; e.currentTarget.style.color = '#888'; }}}
+          onMouseLeave={e => { if (loginType !== type) { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.color = '#555'; }}}
+        >{label}</button>
+      );
 
       return (
         <div className="screen title-screen">
@@ -1643,31 +1778,25 @@
             ))}
           </div>
           {welcomeBack && (
-            <p style={{ color: '#aaa', fontSize: 13, margin: '0 0 8px', textAlign: 'center' }}>
+            <p style={{ color: '#aaa', fontSize: 13, margin: '0 0 4px', textAlign: 'center' }}>
               Welcome back — take the Compass to continue.
             </p>
           )}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, width: '100%', maxWidth: 280 }}>
             <button className="btn-primary" onClick={onStart} style={{ width: '100%' }}>
-              Take the Compass
+              New user
             </button>
-            {!showLogin ? (
-              <button onClick={() => setShowLogin(true)} style={{
-                width: '100%', padding: '11px 0', fontSize: 14, fontWeight: 600,
-                background: 'none', border: '1px solid #333', borderRadius: 10,
-                color: '#888', cursor: 'pointer', transition: 'border-color 0.15s, color 0.15s',
-                fontFamily: 'inherit',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#555'; e.currentTarget.style.color = '#bbb'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.color = '#888'; }}
-              >
-                Already took it
-              </button>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: '100%' }}>
+            <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+              {secondaryBtn('Free user', 'free')}
+              {secondaryBtn('Compass Client', 'client')}
+            </div>
+            {loginType && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
                 <div style={{ display: 'flex', gap: 8, width: '100%' }}>
                   <input
-                    type="email" placeholder="your@email.com" value={loginEmail} autoFocus
+                    type="email"
+                    placeholder={loginType === 'client' ? 'client@email.com' : 'your@email.com'}
+                    value={loginEmail} autoFocus
                     onChange={e => setLoginEmail(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleLogin()}
                     style={{
@@ -1788,7 +1917,7 @@
             if (data.user) {
               if (data.user.role === 'admin') {
                 setEmail(data.user.email || '');
-                setScreen('collect');
+                setScreen('admin-home');
               } else {
                 const hasScores = data.user.scores?.some(s => s > 0);
                 if (!hasScores) {
@@ -1822,7 +1951,7 @@
       const goTitle  = () => navigate('title');
       const handleReturning = (user) => {
         if (user.role === 'admin') {
-          navigate('collect', () => setEmail(user.email || ''));
+          navigate('admin-home', () => setEmail(user.email || ''));
         } else {
           const hasScores = user.scores?.some(s => s > 0);
           if (!hasScores) {
@@ -1864,8 +1993,17 @@
             <ResultsScreen name={name} displayName={displayName} scores={scores} answers={answers} onReveal={goReveal} />
           )}
           {screen === 'reveal' && <RevealScreen displayName={displayName} scores={scores} onSelect={goAgent} />}
-          {screen === 'agent'   && <AgentScreen email={email} scores={scores} selectedAnswer={selectedAnswer} isReturning={returningMode} />}
-          {screen === 'collect' && <CollectScreen />}
+          {screen === 'agent'      && <AgentScreen email={email} scores={scores} selectedAnswer={selectedAnswer} isReturning={returningMode} />}
+          {screen === 'admin-home' && <AdminHomeScreen
+            onCollect={() => navigate('collect')}
+            onRoleplay={user => navigate('agent', () => {
+              setScores(user.scores || Array(10).fill(0));
+              setEmail(user.email || '');
+              setDisplayName(user.displayName || '');
+              setReturning(true);
+            })}
+          />}
+          {screen === 'collect'    && <CollectScreen />}
           <div className={`transition-overlay${covering ? ' covering' : ''}`} />
         </>
       );

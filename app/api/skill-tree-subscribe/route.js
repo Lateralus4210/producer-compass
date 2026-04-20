@@ -68,14 +68,16 @@ async function createLeadStub(slug, name, email, scores) {
   );
   if (contactsCheck.ok) return;
 
-  // Skip if already in leads/ (returning lead — don't overwrite existing conversation)
+  // Skip if already in leads/ on today's date (returning lead same day)
+  const dateDir = new Date().toISOString().split('T')[0];
   const leadsCheck = await fetch(
-    `https://api.github.com/repos/${REPO}/contents/leads/${slug}.md`,
+    `https://api.github.com/repos/${REPO}/contents/leads/${dateDir}/${slug}.md`,
     { headers }
   );
   if (leadsCheck.ok) return;
 
-  await fetch(`https://api.github.com/repos/${REPO}/contents/leads/${slug}.md`, {
+  const dateDir = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  await fetch(`https://api.github.com/repos/${REPO}/contents/leads/${dateDir}/${slug}.md`, {
     method: 'PUT',
     headers: { ...headers, 'Content-Type': 'application/json' },
     body: JSON.stringify({

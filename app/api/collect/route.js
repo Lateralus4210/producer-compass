@@ -1,10 +1,18 @@
 /**
  * Next.js API Route — Admin Collect
- * GET /api/collect
+ * GET /api/collect?days=7
  *
- * Returns a summary of all leads for admin review:
- * - Leads with call_interest: true (sorted by interest date)
- * - All other leads (sorted by most recent activity)
+ * Returns a three-tier lead summary for admin review.
+ * All data sourced from KV — no file parsing needed.
+ *
+ * Tiers:
+ *   qualified   — call_interest: true, role: lead (detailed list)
+ *   unqualified — call_interest: false, role: lead (count only)
+ *   contacts    — role: member (count only, not surfaced by default)
+ *
+ * Query params:
+ *   days  — lookback window for unqualified count (default: 7)
+ *   all   — if "true", include full unqualified list (not just count)
  *
  * Admin-only. Verified via fp_email cookie + role check in KV.
  */
@@ -58,22 +66,41 @@ export async function GET(request) {
     return Response.json({ error: 'Forbidden' }, { status: 403, headers: CORS });
   }
 
+  const { searchParams } = new URL(request.url);
+  const days = parseInt(searchParams.get('days') || '7', 10);
+  const showAll = searchParams.get('all') === 'true';
+
+  const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
   const keys = await kvKeys('user:*');
   const users = await Promise.all(keys.map(k => kvGet(k)));
-  const leads = users.filter(u => u && u.role !== 'admin' && u.email);
+  const all = users.filter(u => u?.email);
 
-  const interested = leads
-    .filter(u => u.call_interest)
-    .sort((a, b) => new Date(b.call_interest_at || 0) - new Date(a.call_interest_at || 0));
+  const qualified = all
+    .filter(u => u.role !== 'admin' && u.call_interest)
+    .sort((a, b) => new Date(b.call_interest_at || 0) - new Date(a.call_interest_at || 0))
+    .map(u => ({
+      email: u.email,
+      displayName: u.displayName || '',
+      messageCount: u.messageCount || 0,
+      call_interest_at: u.call_interest_at || null,
+      savedAt: u.savedAt || null,
+    }));
 
-  const others = leads
-    .filter(u => !u.call_interest)
-    .sort((a, b) => new Date(b.savedAt || 0) - new Date(a.savedAt || 0));
+  const unqualifiedAll = all.filter(u => u.role !== 'admin' && !u.call_interest && u.role !== 'member');
+  const unqualifiedRecent = unqualifiedAll.filter(u => (u.savedAt || '') >= cutoff);
+
+  const contactsCount = all.filter(u => u.role === 'member').length;
 
   return Response.json({
-    interested,
-    others,
-    total: leads.length,
+    qualified,
+    unqualified: showAll
+      ? unqualifiedAll.sort((a, b) => new Date(b.savedAt || 0) - new Date(a.savedAt || 0))
+      : null,
+    unqualifiedCount: unqualifiedAll.length,
+    unqualifiedRecentCount: unqualifiedRecent.length,
+    contactsCount,
+    days,
     asOf: new Date().toISOString(),
   }, { headers: CORS });
 }

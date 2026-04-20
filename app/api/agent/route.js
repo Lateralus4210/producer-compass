@@ -54,37 +54,52 @@ function emailToSlug(email) {
 
 // ─── GitHub helpers ───────────────────────────────────────────────────────────
 
-// Returns { content, sha, dir } or null. Checks contacts/ then leads/.
-async function fetchContactFile(slug) {
+// Returns { content, sha, path } or null.
+// Checks contacts/{slug}.md first, then leads/{YYYY-MM-DD}/{slug}.md using savedAt.
+async function fetchContactFile(slug, savedAt) {
   const { GITHUB_TOKEN } = process.env;
   if (!GITHUB_TOKEN) return null;
 
-  for (const dir of ['contacts', 'leads']) {
+  const ghGet = async (path) => {
     const res = await fetch(
-      `https://api.github.com/repos/${REPO}/contents/${dir}/${slug}.md`,
+      `https://api.github.com/repos/${REPO}/contents/${path}`,
       { headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github.v3+json' } }
     );
-    if (res.ok) {
-      const data = await res.json();
-      const content = Buffer.from(data.content.replace(/\n/g, ''), 'base64').toString('utf8');
-      return { content, sha: data.sha, dir };
-    }
+    if (!res.ok) return null;
+    const data = await res.json();
+    return {
+      content: Buffer.from(data.content.replace(/\n/g, ''), 'base64').toString('utf8'),
+      sha: data.sha,
+      path,
+    };
+  };
+
+  // Try flat contacts/ first (curated member profiles)
+  const contact = await ghGet(`contacts/${slug}.md`);
+  if (contact) return contact;
+
+  // Try leads/ with date subdir derived from KV savedAt
+  if (savedAt) {
+    const dateDir = new Date(savedAt).toISOString().split('T')[0];
+    const lead = await ghGet(`leads/${dateDir}/${slug}.md`);
+    if (lead) return lead;
   }
+
   return null;
 }
 
-async function writeContactFile(dir, slug, content, sha) {
+async function writeContactFile(path, content, sha) {
   const { GITHUB_TOKEN } = process.env;
   if (!GITHUB_TOKEN) return;
 
   const body = {
-    message: `agent: update ${slug}`,
+    message: `agent: update ${path}`,
     content: Buffer.from(content).toString('base64'),
   };
   if (sha) body.sha = sha;
 
   const res = await fetch(
-    `https://api.github.com/repos/${REPO}/contents/${dir}/${slug}.md`,
+    `https://api.github.com/repos/${REPO}/contents/${path}`,
     {
       method: 'PUT',
       headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
@@ -92,7 +107,7 @@ async function writeContactFile(dir, slug, content, sha) {
     }
   );
   if (!res.ok) {
-    console.warn(`GitHub write failed for ${dir}/${slug}.md:`, res.status, await res.text());
+    console.warn(`GitHub write failed for ${path}:`, res.status, await res.text());
   }
 }
 
@@ -237,10 +252,8 @@ export async function POST(request) {
     const slug = emailKey ? emailToSlug(emailKey) : null;
 
     // Load KV user and GitHub contact file in parallel
-    const [user, contactFile] = await Promise.all([
-      emailKey ? kvGet(`user:${emailKey}`) : Promise.resolve(null),
-      slug ? fetchContactFile(slug) : Promise.resolve(null),
-    ]);
+    const user = emailKey ? await kvGet(`user:${emailKey}`) : null;
+    const contactFile = slug ? await fetchContactFile(slug, user?.savedAt) : null;
 
     // Hard limit for leads
     if (user && user.role !== 'admin' && user.role !== 'member') {
@@ -304,10 +317,10 @@ export async function POST(request) {
     if (emailKey) kvSet(`user:${emailKey}`, updatedUser); // fire-and-forget
 
     // Append exchange to GitHub contact file
-    if (contactFile && slug && messages.length > 0) {
+    if (contactFile && messages.length > 0) {
       const lastUserMsg = messages[messages.length - 1]?.content || '';
       const updatedContent = appendExchange(contactFile.content, lastUserMsg, cleanMessage);
-      await writeContactFile(contactFile.dir, slug, updatedContent, contactFile.sha);
+      await writeContactFile(contactFile.path, updatedContent, contactFile.sha);
     }
 
     // Build response payload
