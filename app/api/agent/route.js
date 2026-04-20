@@ -21,15 +21,16 @@ const REPO = 'Lateralus4210/the-free-producer';
 
 // ─── Static context ───────────────────────────────────────────────────────────
 
-function loadFpContext() {
+function loadFile(name) {
   try {
-    return readFileSync(join(process.cwd(), 'lib/fp-context.md'), 'utf8');
+    return readFileSync(join(process.cwd(), 'lib', name), 'utf8');
   } catch {
     return '';
   }
 }
 
-const FP_CONTEXT = loadFpContext();
+const FP_CONTEXT = loadFile('fp-context.md');
+const FP_SCRIPT  = loadFile('fp-script.md');
 
 const AREA_KEYS = [
   'Composition', 'Music Theory', 'DAW Proficiency', 'Mixing', 'Mastering',
@@ -172,6 +173,7 @@ function buildSystemPrompt({ scores, selectedAnswer, profile, context, homework,
 
   const parts = [
     FP_CONTEXT,
+    FP_SCRIPT,
     `---\n## This Producer's Compass Scores\n${scoreBlock}`,
   ];
 
