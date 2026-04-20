@@ -1513,7 +1513,7 @@
       ['DAW', 'Mixing', 'Mastering'],
       ['Collab', 'Artwork', 'Release', 'Promo'],
     ];
-    function TitleScreen({ onStart, onReturning }) {
+    function TitleScreen({ onStart, onReturning, welcomeBack }) {
       const h1Ref = useRef(null);
       const [marqueeW, setMarqueeW] = useState(0);
       const [showLogin, setShowLogin] = useState(false);
@@ -1559,6 +1559,11 @@
               </div>
             ))}
           </div>
+          {welcomeBack && (
+            <p style={{ color: '#aaa', fontSize: 13, margin: '0 0 4px', textAlign: 'center' }}>
+              Welcome back — take the Compass to continue.
+            </p>
+          )}
           <button className="btn-primary" onClick={onStart}>Start</button>
           {!showLogin ? (
             <button onClick={() => setShowLogin(true)} style={{
@@ -1676,6 +1681,7 @@
       const [covering, setCovering]       = useState(true);
       const [savedData, setSavedData]     = useState(null);
       const [returningMode, setReturning] = useState(false);
+      const [welcomeBack, setWelcomeBack] = useState(false);
 
       const FADE_MS = 1280;
 
@@ -1686,11 +1692,17 @@
           .then(r => r.json())
           .then(data => {
             if (data.user) {
-              setScores(data.user.scores || Array(10).fill(0));
-              setEmail(data.user.email || '');
-              setDisplayName(data.user.displayName || '');
-              setReturning(true);
-              setScreen('agent');
+              const hasScores = data.user.scores?.some(s => s > 0);
+              if (!hasScores && data.user.role !== 'admin') {
+                setWelcomeBack(true);
+                setScreen('title');
+              } else {
+                setScores(data.user.scores || Array(10).fill(0));
+                setEmail(data.user.email || '');
+                setDisplayName(data.user.displayName || '');
+                setReturning(true);
+                setScreen('agent');
+              }
             } else {
               setScreen('title');
             }
@@ -1709,12 +1721,20 @@
       }
 
       const goTitle  = () => navigate('title');
-      const handleReturning = (user) => navigate('agent', () => {
-        setScores(user.scores || Array(10).fill(0));
-        setEmail(user.email || '');
-        setDisplayName(user.displayName || '');
-        setReturning(true);
-      });
+      const handleReturning = (user) => {
+        const hasScores = user.scores?.some(s => s > 0);
+        if (!hasScores && user.role !== 'admin') {
+          setWelcomeBack(true);
+          navigate('title');
+        } else {
+          navigate('agent', () => {
+            setScores(user.scores || Array(10).fill(0));
+            setEmail(user.email || '');
+            setDisplayName(user.displayName || '');
+            setReturning(true);
+          });
+        }
+      };
       const goName   = () => navigate('name');
       const goSurvey = (n, dn) => navigate('survey', () => {
         setName(n); setDisplayName(dn);
@@ -1731,7 +1751,7 @@
       });
       return (
         <>
-          {screen === 'title'    && <TitleScreen onStart={goName} onReturning={handleReturning} />}
+          {screen === 'title'    && <TitleScreen onStart={goName} onReturning={handleReturning} welcomeBack={welcomeBack} />}
           {screen === 'name'     && <NameScreen  onNext={goSurvey} />}
           {screen === 'survey'   && (
             <SurveyScreen name={name} displayName={displayName}

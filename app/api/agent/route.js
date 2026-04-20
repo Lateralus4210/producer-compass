@@ -42,7 +42,7 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-const LEAD_SOFT_LIMIT = 8;
+const LEAD_SOFT_LIMIT = 4;
 const LEAD_HARD_LIMIT = 15;
 
 // ─── Slug helper ──────────────────────────────────────────────────────────────
@@ -192,11 +192,13 @@ function buildSystemPrompt({ scores, selectedAnswer, profile, context, homework,
     if (lines.length) parts.push(`---\n## Live Coaching Context\n${lines.join('\n\n')}`);
   }
 
-  // Guide leads toward a call as the limit approaches
+  // Guide leads toward Compass coaching. The Skill Tree and this agent are the lead magnet —
+  // the real offer is Compass coaching (accountability calls + unlimited agent access).
+  // Free Skool community membership is also included with Compass. Start surfacing this early.
   if (role !== 'admin' && role !== 'member') {
     const remaining = LEAD_HARD_LIMIT - (messageCount || 0);
     if (remaining <= LEAD_HARD_LIMIT - LEAD_SOFT_LIMIT) {
-      parts.push(`---\nThis producer has ${remaining} free message${remaining === 1 ? '' : 's'} remaining. Naturally move the conversation toward asking if they'd be open to a Compass call with Zach. If they say yes or express clear interest, end your response with the exact token: CALL_INTEREST_CONFIRMED`);
+      parts.push(`---\nThis producer has ${remaining} free message${remaining === 1 ? '' : 's'} remaining on the free tier. The Skill Tree and this agent are a preview — the actual offer is Compass coaching: accountability calls with Zach + Skyler, unlimited agent access, and free access to The Free Producer Skool community. Naturally work this into the conversation. When they express interest in a call or in going deeper, end your response with the exact token: CALL_INTEREST_CONFIRMED`);
     }
   }
 
