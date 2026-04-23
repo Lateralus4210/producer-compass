@@ -312,20 +312,20 @@
       flex-shrink: 0; position: relative;
     }
     .agent-info-btn {
-      width: 18px; height: 18px; border-radius: 50%;
+      width: 28px; height: 28px; border-radius: 50%;
       border: 1px solid #444; color: #555; background: none;
-      font-size: 11px; font-weight: 700; cursor: pointer;
+      font-size: 14px; font-weight: 700; cursor: pointer;
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .agent-info-btn:hover { border-color: #666; color: #888; }
     .btn-signout {
-      margin-left: auto; font-size: 11px; color: #444; background: none;
-      border: none; cursor: pointer; padding: 2px 6px; border-radius: 4px;
+      margin-left: auto; font-size: 13px; color: #444; background: none;
+      border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px;
       font-family: inherit; flex-shrink: 0;
     }
     .btn-signout:hover { color: #888; }
     .agent-info-tooltip {
-      position: absolute; top: 48px; right: 16px;
+      position: absolute; bottom: 38px; left: 0;
       background: #1a1a1a; border: 1px solid #333; border-radius: 10px;
       padding: 12px 14px; font-size: 13px; line-height: 1.6; color: #bbb;
       width: 260px; z-index: 10;
@@ -336,7 +336,7 @@
     }
     .agent-header-label {
       font-family: 'Montserrat', sans-serif;
-      font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.12em;
       text-transform: uppercase; color: var(--muted);
     }
     .agent-messages {
@@ -770,7 +770,7 @@
     // Label positions (beyond outermost ring)
     const LABEL_POS = AREAS.map((_, i) => {
       const rad = sectorRad(i);
-      return { x: CX + 234 * Math.cos(rad), y: CY + 234 * Math.sin(rad) };
+      return { x: CX + 255 * Math.cos(rad), y: CY + 255 * Math.sin(rad) };
     });
 
     // ═══════════════════════════════════════════════
@@ -927,12 +927,12 @@
             {/* Spokes — connect hub edge to actual nearest inner node */}
             {AREAS.map((area, si) => {
               const done = completedAreas.includes(si), active = si === activeArea;
-              const hasScore = (scores[si] || 0) > 0;
+              const hasLitNode = litCount(scores[si] || 0) >= 1;
               const rad = sectorRad(si);
               const x1 = CX + 26 * Math.cos(rad), y1 = CY + 26 * Math.sin(rad);
               const target = SPOKE_TARGETS[si];
-              const spokeColor = done ? area.color + '33' : hasScore ? area.color + '28' : active ? area.color + '15' : '#161616';
-              const spokeWidth = done ? 1.0 : hasScore ? 0.8 : 0.6;
+              const spokeColor = done ? area.color + '33' : hasLitNode ? area.color + '28' : active ? area.color + '15' : '#161616';
+              const spokeWidth = done ? 1.0 : hasLitNode ? 0.8 : 0.6;
               return (
                 <line key={si} x1={x1} y1={y1} x2={target.x} y2={target.y}
                   stroke={spokeColor} strokeWidth={spokeWidth} />
@@ -1325,8 +1325,8 @@
             ))}
           </div>
           <div className="email-gate">
-            <h3>See your full Skill Tree.</h3>
-            <p>Enter your email to unlock your complete Producer Skill Tree. We'll show your full results on the next screen.</p>
+            <h3>Save your results.</h3>
+            <p>Enter your email to save your score and unlock personalized next steps based on where you landed.</p>
             <div className="email-row">
               <input className={`email-input${showError ? ' invalid' : ''}`}
                 type="email" placeholder="producer@email.com"
@@ -1456,9 +1456,9 @@
     // ═══════════════════════════════════════════════
     // AGENT SCREEN
     // ═══════════════════════════════════════════════
-    const AGENT_INFO = "Your FP Coach is trained on The FP's Compass framework and methodologies. FP+ members can log wins, earn XP, get homework, and dig into any aspect of music production.";
+    const AGENT_INFO = "Your Compass Agent is trained on The FP's Compass framework and methodologies. FP+ members can log wins, earn XP, get homework, and dig into any aspect of music production.";
 
-    const WELCOME_MSG = "Welcome back. I'm your FP Coach, trained on The FP's Compass framework and methodologies. FP+ members can log wins, earn XP, complete homework, and dig into any aspect of music production. What's on your mind?";
+    const WELCOME_MSG = "Welcome back. I'm your Compass Agent, trained on The FP's Compass framework and methodologies. FP+ members can log wins, earn XP, complete homework, and dig into any aspect of music production. What's on your mind?";
 
     function AgentInfoBtn() {
       const [show, setShow] = useState(false);
@@ -1466,7 +1466,7 @@
         <div style={{ position: 'relative' }}
           onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
           <button className="agent-info-btn"
-            onClick={() => setShow(s => !s)} aria-label="About FP Coach">?</button>
+            onClick={() => setShow(s => !s)} aria-label="About Compass Agent">?</button>
           {show && <div className="agent-info-tooltip">{AGENT_INFO}</div>}
         </div>
       );
@@ -1531,9 +1531,8 @@
         <div className="screen agent-screen">
           <div className="agent-header">
             <div className="agent-header-dot" />
-            <div className="agent-header-label">FP Coach</div>
+            <div className="agent-header-label">Compass Agent</div>
             <button className="btn-signout" onClick={onSignOut}>Sign out</button>
-            <AgentInfoBtn />
           </div>
           <div className="agent-messages">
             {isReturning && messages.length === 0 && (
@@ -1571,6 +1570,7 @@
             </div>
           ) : (
             <div className="agent-input-row">
+              <AgentInfoBtn />
               <textarea
                 className="agent-input"
                 placeholder="Reply…"
