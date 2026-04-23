@@ -312,12 +312,18 @@
       flex-shrink: 0; position: relative;
     }
     .agent-info-btn {
-      margin-left: auto; width: 18px; height: 18px; border-radius: 50%;
+      width: 18px; height: 18px; border-radius: 50%;
       border: 1px solid #444; color: #555; background: none;
       font-size: 11px; font-weight: 700; cursor: pointer;
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .agent-info-btn:hover { border-color: #666; color: #888; }
+    .btn-signout {
+      margin-left: auto; font-size: 11px; color: #444; background: none;
+      border: none; cursor: pointer; padding: 2px 6px; border-radius: 4px;
+      font-family: inherit; flex-shrink: 0;
+    }
+    .btn-signout:hover { color: #888; }
     .agent-info-tooltip {
       position: absolute; top: 48px; right: 16px;
       background: #1a1a1a; border: 1px solid #333; border-radius: 10px;
@@ -1413,7 +1419,7 @@
     function AgentInfoBtn() {
       const [show, setShow] = useState(false);
       return (
-        <div style={{ position: 'relative', marginLeft: 'auto' }}
+        <div style={{ position: 'relative' }}
           onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
           <button className="agent-info-btn"
             onClick={() => setShow(s => !s)} aria-label="About FP Coach">?</button>
@@ -1422,7 +1428,7 @@
       );
     }
 
-    function AgentScreen({ email, scores, selectedAnswer, isReturning }) {
+    function AgentScreen({ email, scores, selectedAnswer, isReturning, onSignOut }) {
       const [messages, setMessages]   = useState([]);
       const [input, setInput]         = useState('');
       const [loading, setLoading]     = useState(false);
@@ -1482,6 +1488,7 @@
           <div className="agent-header">
             <div className="agent-header-dot" />
             <div className="agent-header-label">FP Coach</div>
+            <button className="btn-signout" onClick={onSignOut}>Sign out</button>
             <AgentInfoBtn />
           </div>
           <div className="agent-messages">
@@ -1977,6 +1984,7 @@
       }
 
       const goTitle  = () => navigate('title');
+      const handleSignOut = () => { lsClear(); navigate('title'); };
       const handleReturning = (user) => {
         if (user.role === 'admin') {
           navigate('admin-home', () => setEmail(user.email || ''));
@@ -2021,7 +2029,7 @@
             <ResultsScreen name={name} displayName={displayName} scores={scores} answers={answers} onReveal={goReveal} />
           )}
           {screen === 'reveal' && <RevealScreen displayName={displayName} scores={scores} onSelect={goAgent} />}
-          {screen === 'agent'      && <AgentScreen email={email} scores={scores} selectedAnswer={selectedAnswer} isReturning={returningMode} />}
+          {screen === 'agent'      && <AgentScreen email={email} scores={scores} selectedAnswer={selectedAnswer} isReturning={returningMode} onSignOut={handleSignOut} />}
           {screen === 'admin-home' && <AdminHomeScreen
             onCollect={() => navigate('collect')}
             onRoleplay={user => navigate('agent', () => {
