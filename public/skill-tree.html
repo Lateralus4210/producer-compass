@@ -40,7 +40,12 @@
       from { stroke-dashoffset: var(--edge-len); opacity: 0.15; }
       to   { stroke-dashoffset: 0; opacity: 0.65; }
     }
+    @keyframes node-breathe {
+      0%, 100% { filter: brightness(1) saturate(1); }
+      50%       { filter: brightness(1.4) saturate(1.25); }
+    }
     circle.node-new { animation: node-burst 0.55s ease forwards; }
+    circle.node-lit { animation: node-breathe 3.6s ease-in-out infinite; }
 
     /* ── TRANSITION OVERLAY ──────────────────────── */
     .transition-overlay {
@@ -830,7 +835,8 @@
     // ═══════════════════════════════════════════════
     // Remap raw score [0,7] → [1,10]
     const toTen    = raw => Math.max(1, Math.min(10, Math.round((raw / 7) * 9) + 1));
-    const litCount = raw => Math.round(raw * NODE_COUNT / 7);
+    // Power curve: high scores pop outward, low scores cluster toward center
+    const litCount = raw => Math.round(Math.pow(raw / 7, 1.6) * NODE_COUNT);
 
     function getCompletedAreas(qIdx) {
       const done = [];
@@ -894,13 +900,15 @@
             {/* Spokes — connect hub edge to actual nearest inner node */}
             {AREAS.map((area, si) => {
               const done = completedAreas.includes(si), active = si === activeArea;
+              const hasScore = (scores[si] || 0) > 0;
               const rad = sectorRad(si);
               const x1 = CX + 26 * Math.cos(rad), y1 = CY + 26 * Math.sin(rad);
               const target = SPOKE_TARGETS[si];
+              const spokeColor = done ? area.color + '33' : hasScore ? area.color + '28' : active ? area.color + '15' : '#161616';
+              const spokeWidth = done ? 1.0 : hasScore ? 0.8 : 0.6;
               return (
                 <line key={si} x1={x1} y1={y1} x2={target.x} y2={target.y}
-                  stroke={done ? area.color + '33' : active ? area.color + '18' : '#161616'}
-                  strokeWidth={done ? 1.0 : 0.6} />
+                  stroke={spokeColor} strokeWidth={spokeWidth} />
               );
             })}
 
@@ -938,18 +946,20 @@
               const score = scores[si] || 0;
               const lit   = litCount(score);
               const active = si === activeArea;
+              const bloomRadius = [4, 7, 11, 16];
+              const bloomOpacity = ['44', '60', '88', 'BB'];
               return ALL_NODES[si].map(node => {
                 const isLit  = node.ni < lit;
                 const nodeId = `${si}-${node.ni}`;
                 const isNew  = newNodes ? newNodes.has(nodeId) : false;
                 const fill   = isLit ? (area.color + alphas[node.ri]) : '#0d0d0d';
                 const stroke = isLit ? area.color + '44' : (active ? area.color + '14' : '#1e1e1e');
-                const glow   = isLit ? `drop-shadow(0 0 ${2 + node.ri * 1.5}px ${area.color}55)` : 'none';
+                const glow   = isLit ? `drop-shadow(0 0 ${bloomRadius[node.ri]}px ${area.color}${bloomOpacity[node.ri]})` : 'none';
                 return (
                   <circle key={isNew ? `${nodeId}-n` : nodeId}
-                    className={isNew ? 'node-new' : undefined}
+                    className={isNew ? 'node-new' : isLit ? 'node-lit' : undefined}
                     cx={node.x} cy={node.y} r={node.vr}
-                    fill={fill} stroke={stroke} strokeWidth={0.6}
+                    fill={fill} stroke={stroke} strokeWidth={0.6 + node.ri * 0.15}
                     style={{ filter: glow }} />
                 );
               });
@@ -1181,7 +1191,9 @@
       const [email, setEmail]             = useState('');
       const [emailTouched, setEmailTouched] = useState(false);
       const [submitting, setSubmitting]   = useState(false);
+      const [submitted, setSubmitted]     = useState(false);
       const [submitError, setSubmitError] = useState(null);
+      const submittingRef = useRef(false);
       const [barWidths, setBarWidths] = useState(Array(10).fill(0));
       const [displayed, setDisplayed] = useState(Array(10).fill(0));
       const cancelRef = useRef(false);
@@ -1225,7 +1237,8 @@
 
       const handleSubmit = async () => {
         setEmailTouched(true);
-        if (!valid || submitting) return;
+        if (!valid || submittingRef.current || submitted) return;
+        submittingRef.current = true;
         setSubmitting(true);
         setSubmitError(null);
         try {
@@ -1237,8 +1250,10 @@
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || 'Submission failed');
           lsClear();
+          setSubmitted(true);
           onReveal(email);
         } catch (err) {
+          submittingRef.current = false;
           setSubmitError(err.message || 'Something went wrong. Please try again.');
           setSubmitting(false);
         }
@@ -1279,7 +1294,7 @@
                 onBlur={() => setEmailTouched(true)}
                 onKeyDown={e => e.key === 'Enter' && handleSubmit()} />
               <button className="btn-submit" onClick={handleSubmit}
-                disabled={submitting}>
+                disabled={submitting || submitted}>
                 {submitting ? '...' : 'Enter'}
               </button>
             </div>
