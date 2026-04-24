@@ -1,6 +1,24 @@
 # Skill Tree + Agent — Punch List
 
-Last updated: 2026-04-23
+Last updated: 2026-04-24
+
+---
+
+## Rebrand — Compass for Music Producers (from 2026-04-24 bizdev)
+
+Decisions and tasks flowing from the rebrand to Compass. The "Free Producer" name creates friction at the point of sale; "Compass" removes the explanation tax.
+
+- **Lock the name** — Front-runners: "Compass for Music Producers" vs. "Compass Music" vs. "Producer Compass." Decision needed before any assets are updated. (Zach to decide)
+- **Site title + branding** — Update skill tree title screen copy, meta tags, and any "The Free Producer" references throughout the app to reflect the new brand name once locked
+- **Compass Clients language** — Agent copy and any paid-tier references should use "Compass Clients" (not FP+) once the Skool rename is done
+- **YouTube account decision** — Buffer needs a dedicated Compass YouTube channel to schedule video content. Decide: create new Compass Google/YouTube account, or disconnect Zach's personal account from Buffer? (Zach to decide)
+
+### Skyler's tasks (from bizdev — tracked here for visibility)
+- Skool: rename "FP+" category → "Compass Clients"; delete "Free Mix" (announce sunset + reroute posts to Lounge first); add up to 11 keywords per category; add "Guest Interviews/Speakers" category
+- Skool group name change: "Compass for Music Producers" — $99 fee, do after name is locked
+- Create shared Canva account under new Compass business email
+- Build 6 carousel series (Producer Truths, You Don't Need That, Quick Mix Tips, Things Nobody Tells You, Compass Clients Awareness, TBD); schedule via Buffer
+- Send Zach TikTok login so account can be connected to Buffer
 
 ---
 
