@@ -1292,7 +1292,7 @@
           if (!res.ok) throw new Error(data.error || 'Submission failed');
           lsClear();
           setSubmitted(true);
-          onReveal(email);
+          window.location.href = `/results?scores=${scores.map(toTen).join(',')}`;
         } catch (err) {
           submittingRef.current = false;
           setSubmitError(err.message || 'Something went wrong. Please try again.');
