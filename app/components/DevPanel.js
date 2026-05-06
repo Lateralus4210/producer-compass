@@ -1,64 +1,77 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { AREA_ORDER, articles } from "@/lib/articles";
 
 export default function DevPanel() {
   const [open, setOpen] = useState(false);
-  const router = useRouter();
 
   const go = (area, slug) => {
-    setOpen(false);
-    router.push(`/learn/${area}/${slug}`);
+    window.location.href = `/learn/${area}/${slug}`;
   };
 
   return (
-    <>
-      {/* Floating trigger */}
+    <div style={{ position: "fixed", bottom: 16, right: 16, zIndex: 9999 }}>
+      {open && (
+        <div style={{
+          position: "absolute",
+          bottom: 36,
+          right: 0,
+          width: 280,
+          maxHeight: "70vh",
+          overflowY: "auto",
+          background: "#18181b",
+          border: "1px solid #3f3f46",
+          borderRadius: 12,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+          padding: "8px 0",
+        }}>
+          <p style={{ fontSize: 10, color: "#a1a1aa", textTransform: "uppercase", letterSpacing: "0.1em", padding: "8px 16px 4px", fontFamily: "monospace" }}>
+            Dev — Jump to area
+          </p>
+          {AREA_ORDER.map((area) => (
+            <div key={area} style={{ padding: "4px 12px" }}>
+              <p style={{ fontSize: 11, color: "#d4d4d8", fontWeight: 600, padding: "4px 4px 2px" }}>
+                {articles[area].label}
+              </p>
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                {["low-score", "high-score", "what-is"].map((slug) => (
+                  <button
+                    key={slug}
+                    onClick={() => go(area, slug)}
+                    style={{
+                      fontSize: 11,
+                      background: "#27272a",
+                      color: "#e4e4e7",
+                      border: "1px solid #3f3f46",
+                      borderRadius: 6,
+                      padding: "3px 8px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {slug}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       <button
         onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-4 right-4 z-50 bg-zinc-800 text-zinc-400 text-xs px-3 py-1.5 rounded-full hover:bg-zinc-700 hover:text-white transition-colors"
-        aria-label="Toggle dev panel"
+        style={{
+          fontSize: 11,
+          background: "#27272a",
+          color: "#a1a1aa",
+          border: "1px solid #3f3f46",
+          borderRadius: 999,
+          padding: "4px 12px",
+          cursor: "pointer",
+        }}
       >
         dev
       </button>
-
-      {/* Panel overlay */}
-      {open && (
-        <div className="fixed inset-0 z-40 flex items-end justify-end pointer-events-none">
-          <div
-            className="m-4 mb-12 w-72 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl pointer-events-auto overflow-y-auto max-h-[80vh]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-4 py-3 border-b border-zinc-700">
-              <p className="text-xs font-mono text-zinc-400 uppercase tracking-wider">
-                Dev — Jump to area
-              </p>
-            </div>
-            <div className="p-3 space-y-1">
-              {AREA_ORDER.map((area) => (
-                <div key={area}>
-                  <p className="text-xs text-zinc-300 px-2 pt-2 pb-1 font-medium">
-                    {articles[area].label}
-                  </p>
-                  <div className="flex gap-1 flex-wrap pl-2">
-                    {["low-score", "high-score", "what-is"].map((slug) => (
-                      <button
-                        key={slug}
-                        onClick={() => go(area, slug)}
-                        className="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white px-2 py-1 rounded transition-colors"
-                      >
-                        {slug}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+    </div>
   );
 }
