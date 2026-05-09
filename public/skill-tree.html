@@ -604,79 +604,80 @@
     ];
 
     // ═══════════════════════════════════════════════
-    // QUESTIONS (70 total — area order matches AREAS)
-    // inv: true = "No" scores the point (hidden inversion)
+    // QUESTIONS (50 total — area order matches AREAS)
+    // inv: true = "No" scores the point
+    // Questions are experiential — describe behavior, not test knowledge
     // ═══════════════════════════════════════════════
     const QUESTIONS = [
       // ── IDEATION (0) ─────────────────────────────
-      { area:0, q:"Can you name the primary genre(s) of your own music?" },
-      { area:0, q:"Have you intentionally listened to music outside your usual genre in the last 30 days?" },
-      { area:0, q:"I tend to stay within the bounds of my usual genre.", inv:true },
-      { area:0, q:"I have a running log of new music I've discovered." },
-      { area:0, q:"I have ways of capturing song ideas even when I'm not at my DAW." },
+      { area:0, q:"I have a clear sense of what my music sounds like to someone who's never heard it." },
+      { area:0, q:"When I'm away from my DAW, sounds and ideas that could become tracks still catch my attention." },
+      { area:0, q:"I tend to revisit the same types of ideas over and over without much variation.", inv:true },
+      { area:0, q:"In the last month, I've actively sought out music that's different from what I normally make." },
+      { area:0, q:"I keep some kind of record — notes, voice memos, a playlist — of musical ideas I want to return to." },
 
       // ── COMPOSITION (1) ──────────────────────────
-      { area:1, q:"Can you name the sections of your most recent track?" },
-      { area:1, q:"My tracks tend to follow the same structural pattern every time.", inv:true },
-      { area:1, q:"I have finished the last three tracks I started." },
-      { area:1, q:"When listening to music, I actively notice the song's structure." },
-      { area:1, q:"I am equally comfortable arranging a track with 3 elements as I am with 20." },
+      { area:1, q:"I can describe what makes my most recent track move the way it does — where it builds, where it breathes." },
+      { area:1, q:"My tracks tend to follow the same structural pattern every time I make something new.", inv:true },
+      { area:1, q:"Most tracks I start, I finish." },
+      { area:1, q:"When I listen to music I admire, I find myself noticing how it's built — not just how it feels." },
+      { area:1, q:"I'm comfortable finishing a track that only has a few elements." },
 
       // ── THEORY (2) ───────────────────────────────
-      { area:2, q:"I believe music theory is there to tell me what I'm allowed and not allowed to do in my music.", inv:true },
-      { area:2, q:"I can identify a C major chord on at least one instrument." },
-      { area:2, q:"I have used theory to analyze a song by an artist I admire." },
-      { area:2, q:"I feel sometimes that I'm not using my full capacity when it comes to my music theory knowledge.", inv:true },
-      { area:2, q:"Learning music theory makes me feel less creative.", inv:true },
+      { area:2, q:"Music theory feels like a set of rules about what I'm allowed to do.", inv:true },
+      { area:2, q:"Finding a C major chord on an instrument comes naturally to me." },
+      { area:2, q:"I've used theory concepts to understand something specific in a song I love." },
+      { area:2, q:"There are parts of theory I haven't touched that I think could open things up for me.", inv:true },
+      { area:2, q:"When I sit down to think about theory, I usually end up feeling more constrained than before.", inv:true },
 
       // ── DAW (3) ──────────────────────────────────
-      { area:3, q:"I feel fast in my DAW." },
-      { area:3, q:"I have uninstalled or removed plugins from my setup in the last 6 months." },
-      { area:3, q:"I could explain my current workflow if someone asked me to." },
-      { area:3, q:"I have opened my DAW at least twice in the last week." },
-      { area:3, q:"When I open my DAW with no ideas, I know how to start anyway." },
+      { area:3, q:"Moving through my DAW usually feels fast — my setup keeps up with my ideas." },
+      { area:3, q:"I've cleaned up or simplified my plugin setup at some point in the last six months." },
+      { area:3, q:"If someone asked me to walk them through my workflow, I could do it clearly." },
+      { area:3, q:"Making music is something I did multiple times this week." },
+      { area:3, q:"When I sit down to work with no plan, I usually find a way in anyway." },
 
       // ── MIXING (4) ───────────────────────────────
-      { area:4, q:"I understand why mixing is considered a separate workflow from composing." },
-      { area:4, q:"I know what the single most important tool in mixing is." },
-      { area:4, q:"I have revisited a song to remix it in the last three months." },
-      { area:4, q:"I can predict what a plugin parameter will do before I tweak it." },
-      { area:4, q:"I have a mix I would feel confident sending to a mastering engineer today." },
+      { area:4, q:"I think of mixing as its own phase — something that happens after the song is already finished." },
+      { area:4, q:"I have a clear sense of which tool matters most when I'm mixing." },
+      { area:4, q:"I've gone back to an older song and remixed it in the last three months." },
+      { area:4, q:"When I'm tweaking a plugin, I usually know what I'm going for before I start adjusting." },
+      { area:4, q:"I have something I've made that I'd feel comfortable sending to a mastering engineer." },
 
       // ── MASTERING (5) ────────────────────────────
-      { area:5, q:"I understand where the line is drawn between mixing and mastering." },
-      { area:5, q:"I know what the single most important tool in mastering is." },
-      { area:5, q:"I have an idea what the three most essential tools in mastering are." },
-      { area:5, q:"I have used a LUFS meter to check the loudness of a master." },
-      { area:5, q:"I can master a track using only my ears, a reference track, and a limiter." },
+      { area:5, q:"When a mix is done, I have a clear sense of what still needs to happen before it's release-ready." },
+      { area:5, q:"I understand what's actually happening when I engage a limiter on a master." },
+      { area:5, q:"If I had to describe a basic mastering chain to someone, I could do it." },
+      { area:5, q:"I've used a LUFS meter to check where a master sits." },
+      { area:5, q:"I've trusted my ears and a reference track to guide a master, without leaning on a preset." },
 
       // ── COLLAB (6) ───────────────────────────────
-      { area:6, q:"Isolation as a producer is an obstacle I experience.", inv:true },
-      { area:6, q:"I have collaborated on a track with another producer in the last 6 months." },
-      { area:6, q:"I am part of a music community I show up in regularly." },
-      { area:6, q:"I have at least one released or finished track that involved another person." },
-      { area:6, q:"I have changed something in my music based on feedback from another producer." },
+      { area:6, q:"Working alone feels more like a choice I've made than something I've defaulted into." },
+      { area:6, q:"I've made something with another producer in the last six months." },
+      { area:6, q:"There's a music community I show up in with some regularity." },
+      { area:6, q:"At least one of my finished or released tracks involved someone else in the process." },
+      { area:6, q:"Someone else's feedback has changed a specific decision I made in a song." },
 
       // ── ARTWORK (7) ──────────────────────────────
-      { area:7, q:"I think the visual presentation of my music is as important as the music itself." },
-      { area:7, q:"I know how to access royalty-free databases for artwork." },
-      { area:7, q:"I have a consistent visual identity across my music platforms." },
-      { area:7, q:"I regularly post content that isn't just finished music releases." },
-      { area:7, q:"I would consider myself good with graphic design." },
+      { area:7, q:"I think about how my music looks before anyone hears it." },
+      { area:7, q:"I know where to find usable artwork without paying or violating copyright." },
+      { area:7, q:"Looking at my music profiles, there's a consistent visual feel across my releases." },
+      { area:7, q:"I post content that isn't just finished music — process, context, or behind the scenes." },
+      { area:7, q:"Finding or making cover art feels like a natural part of releasing a song to me." },
 
       // ── RELEASE (8) ──────────────────────────────
-      { area:8, q:"I have released at least one track through a distribution platform (DistroKid, TuneCore, etc.)." },
-      { area:8, q:"I wait until a track sounds completely perfect before I release it.", inv:true },
-      { area:8, q:"I build in a promotional window of at least one week before my release goes live." },
-      { area:8, q:"I have pitched or submitted at least one release to a playlist curator or editorial opportunity." },
-      { area:8, q:"I review performance data from my releases and use it to inform future ones." },
+      { area:8, q:"I've put music on a streaming platform through a distributor." },
+      { area:8, q:"I usually wait until I'm fully satisfied with a track before I release it.", inv:true },
+      { area:8, q:"When I release something, I start promoting it at least a week before it goes live." },
+      { area:8, q:"I've submitted a release to a playlist, blog, or editorial opportunity." },
+      { area:8, q:"I've looked at how a release performed and used that to think about what I'd do differently." },
 
       // ── PROMO (9) ────────────────────────────────
-      { area:9, q:"I understand the difference between promoting my music and monetizing my music." },
-      { area:9, q:"I have at least one active revenue stream related to my music." },
-      { area:9, q:"I know at least three ways a producer can make money from their music." },
-      { area:9, q:"I have submitted music for a sync opportunity, beat marketplace, or licensing deal in the last 6 months." },
-      { area:9, q:"I have a clear idea of how I want my music to generate income." },
+      { area:9, q:"I understand the difference between getting people to hear my music and getting paid for it." },
+      { area:9, q:"I have at least one income stream connected to what I make." },
+      { area:9, q:"I can name a few realistic ways a producer makes money from their music." },
+      { area:9, q:"I've submitted music for sync, licensing, or a beat marketplace in the last six months." },
+      { area:9, q:"I have a picture in my head of how I want music to fit into my financial life." },
     ];
 
     // ── WHISPER COPY (low-score modals, one per area) ────────────────────
@@ -1064,6 +1065,45 @@
     }
 
     // ═══════════════════════════════════════════════
+    // SELF-SCORE STEP — shown before each area's questions
+    // ═══════════════════════════════════════════════
+    function SelfScoreStep({ areaLabel, areaColor, value, onChange, onSubmit }) {
+      return (
+        <div className="q-card-wrap">
+          <div className="q-card-inner">
+            <div className="card-top-row">
+              <div className="area-chip" style={{
+                background: areaColor + '14', border: `1px solid ${areaColor}30`, color: areaColor,
+              }}>
+                <div className="chip-dot" style={{ background: areaColor }} />
+                {areaLabel}
+              </div>
+            </div>
+            <div className="q-text">
+              Before we explore {areaLabel} — where would you put yourself?
+            </div>
+            <div style={{ textAlign: 'center', marginBottom: 12 }}>
+              <span style={{ fontSize: 'clamp(36px, 9vw, 52px)', fontWeight: 700, color: areaColor, lineHeight: 1 }}>{value}</span>
+              <span style={{ color: '#555', fontSize: 16 }}>/10</span>
+            </div>
+            <input
+              type="range" min={1} max={10} step={1} value={value}
+              onChange={e => onChange(Number(e.target.value))}
+              style={{ width: '100%', marginBottom: 10, accentColor: areaColor, cursor: 'pointer' }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#555', marginBottom: 20, letterSpacing: '0.05em' }}>
+              <span>1 — Just starting</span>
+              <span>10 — Confident</span>
+            </div>
+            <button className="btn-primary" style={{ width: '100%' }} onClick={onSubmit}>
+              Continue →
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ═══════════════════════════════════════════════
     // SURVEY SCREEN
     // ═══════════════════════════════════════════════
     function SurveyScreen({ name, displayName, initScores, initQIdx, onComplete }) {
@@ -1075,6 +1115,10 @@
       const [newEdges, setNewEdges]        = useState(null);
       // Answer history for back button: [{area, pts}]
       const [history, setHistory]          = useState([]);
+      // Self-scoring: one score per area, collected before each area's questions
+      const [selfScores, setSelfScores]    = useState(Array(10).fill(null));
+      const [pendingSelfScore, setPendingSelfScore] = useState(true); // show for area 0 first
+      const [selfScoreInput, setSelfScoreInput]     = useState(5);
 
       const initialArea = Math.floor((initQIdx || 0) / 5);
       const [rotDeg, setRotDeg]       = useState(-initialArea * 36);
@@ -1137,7 +1181,7 @@
 
         setTimeout(() => { setNewNodes(null); setNewEdges(null); }, 1300);
 
-        const isAreaDone = areaQ === 6;
+        const isAreaDone = areaQ === 4;
         const newCompleted = [...completedAreas];
         if (isAreaDone && !newCompleted.includes(area)) {
           newCompleted.push(area);
@@ -1148,8 +1192,16 @@
         setTimeout(() => {
           setSelected(null);
           const next = qIdx + 1;
-          if (next >= QUESTIONS.length) onComplete(newScores, [...history, { area, pts }]);
-          else setQIdx(next);
+          if (next >= QUESTIONS.length) {
+            onComplete(newScores, [...history, { area, pts }], selfScores);
+          } else {
+            const nextArea = Math.floor(next / 5);
+            if (nextArea !== area) {
+              setPendingSelfScore(true);
+              setSelfScoreInput(5);
+            }
+            setQIdx(next);
+          }
         }, 600);
       }, [scores, qIdx, completedAreas, area, areaQ]);
 
@@ -1175,6 +1227,15 @@
         setQIdx(prevQIdx);
       }, [qIdx, scores, history, completedAreas, selected]);
 
+      const handleSelfScore = useCallback(() => {
+        setSelfScores(prev => {
+          const next = [...prev];
+          next[area] = selfScoreInput;
+          return next;
+        });
+        setPendingSelfScore(false);
+      }, [area, selfScoreInput]);
+
       return (
         <div className="screen survey-screen">
           <div className="survey-tree-panel">
@@ -1197,13 +1258,23 @@
             />
           </div>
           {q && (
-            <QuestionCard
-              question={q} areaLabel={AREAS[area].label}
-              areaColor={AREAS[area].color} areaQ={areaQ}
-              onAnswer={handleAnswer} onBack={handleBack}
-              canGoBack={qIdx > 0 && selected === null && history.length > 0}
-              selected={selected}
-            />
+            pendingSelfScore ? (
+              <SelfScoreStep
+                areaLabel={AREAS[area].label}
+                areaColor={AREAS[area].color}
+                value={selfScoreInput}
+                onChange={setSelfScoreInput}
+                onSubmit={handleSelfScore}
+              />
+            ) : (
+              <QuestionCard
+                question={q} areaLabel={AREAS[area].label}
+                areaColor={AREAS[area].color} areaQ={areaQ}
+                onAnswer={handleAnswer} onBack={handleBack}
+                canGoBack={qIdx > 0 && selected === null && history.length > 0}
+                selected={selected}
+              />
+            )
           )}
         </div>
       );
@@ -1214,7 +1285,7 @@
 
     // RESULTS SCREEN — sequential bar fill + countup
     // ═══════════════════════════════════════════════
-    function ResultsScreen({ name, displayName, scores, answers, onReveal }) {
+    function ResultsScreen({ name, displayName, scores, answers, selfScores, onReveal }) {
       const [email, setEmail]             = useState('');
       const [emailTouched, setEmailTouched] = useState(false);
       const [submitting, setSubmitting]   = useState(false);
@@ -1292,7 +1363,10 @@
           if (!res.ok) throw new Error(data.error || 'Submission failed');
           lsClear();
           setSubmitted(true);
-          window.location.href = `/results?scores=${scores.map(toTen).join(',')}`;
+          const selfParam = selfScores && selfScores.some(s => s !== null)
+            ? `&self=${selfScores.map(s => s ?? 5).join(',')}`
+            : '';
+          window.location.href = `/results?scores=${scores.map(toTen).join(',')}${selfParam}`;
         } catch (err) {
           submittingRef.current = false;
           setSubmitError(err.message || 'Something went wrong. Please try again.');
@@ -1976,6 +2050,7 @@
       const [displayName, setDisplayName] = useState('');
       const [scores, setScores]           = useState(Array(10).fill(0));
       const [answers, setAnswers]         = useState([]);
+      const [selfScores, setSelfScores]   = useState(Array(10).fill(null));
       const [email, setEmail]             = useState('');
       const [selectedAnswer, setSelected] = useState('');
       const [initQIdx, setInitQIdx]       = useState(0);
@@ -2052,7 +2127,7 @@
         setName(n); setDisplayName(dn);
         setInitQIdx(0); setInitScores(Array(10).fill(0));
       });
-      const finish      = (s, a) => navigate('results', () => { setScores(s); setAnswers(a || []); });
+      const finish      = (s, a, ss) => navigate('results', () => { setScores(s); setAnswers(a || []); setSelfScores(ss || Array(10).fill(null)); });
       const goReveal    = (em) => navigate('reveal', () => { if (em) setEmail(em); });
       const goTransition = () => navigate('transition');
       const goAgent     = (answer) => navigate('agent', () => { setSelected(answer); setReturning(false); });
@@ -2070,7 +2145,7 @@
               initScores={initScores} initQIdx={initQIdx} onComplete={finish} />
           )}
           {screen === 'results'  && (
-            <ResultsScreen name={name} displayName={displayName} scores={scores} answers={answers} onReveal={goReveal} />
+            <ResultsScreen name={name} displayName={displayName} scores={scores} answers={answers} selfScores={selfScores} onReveal={goReveal} />
           )}
           {screen === 'reveal' && <RevealScreen displayName={displayName} scores={scores} onSelect={goAgent} />}
           {screen === 'agent'      && <AgentScreen email={email} scores={scores} selectedAnswer={selectedAnswer} isReturning={returningMode} onSignOut={handleSignOut} />}

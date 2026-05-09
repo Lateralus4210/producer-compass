@@ -119,18 +119,18 @@ function ResultsContent() {
           </a>
         </div>
 
-        {/* A&M plug */}
+        {/* Win Track plug */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-5">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Accountability &amp; Mentorship</p>
+          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Win Track</p>
           <p className="font-semibold mb-2">Work through this one-on-one.</p>
           <p className="text-sm text-zinc-400 mb-4">
             One month of structured work with Zach or Skyler. A diagnostic, real calls, and one thing you prove to yourself before the month is out.
           </p>
           <Link
-            href="/am"
+            href="/work-with-us"
             className="inline-block bg-white text-black text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-zinc-200 transition-colors"
           >
-            Learn about A&amp;M →
+            Learn about Win Track →
           </Link>
         </div>
 
