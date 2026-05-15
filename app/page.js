@@ -15,15 +15,15 @@ export default function Home() {
           to   { transform: translateX(-50%); }
         }
         .marquee-track { display: flex; flex-shrink: 0; animation: marquee 22s linear infinite; }
-        .area-tile:hover { border-color: #444 !important; }
+        .area-btn:hover { transform: scale(1.03); box-shadow: 0 0 32px #F0C40045; }
         .btn-ghost:hover { border-color: #444 !important; color: #888 !important; }
       `}</style>
 
       <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', display: 'flex', flexDirection: 'column' }}>
 
-        {/* Hero — fills the viewport */}
+        {/* Hero */}
         <div style={{
-          flex: 1, display: 'flex', flexDirection: 'column',
+          display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
           textAlign: 'center', gap: 32, padding: '40px 28px 28px',
         }}>
@@ -33,7 +33,7 @@ export default function Home() {
             fontSize: 'clamp(26px, 5.5vw, 50px)',
             fontWeight: 400, lineHeight: 1.15,
           }}>
-            <span style={{ fontSize: '0.61em' }}>Your music production</span>
+            <span style={{ fontSize: '0.61em' }}>Your Music Production</span>
             <br />
             <em style={{
               fontStyle: 'normal', color: '#F0C400',
@@ -65,62 +65,65 @@ export default function Home() {
             </div>
           </div>
 
-          <p style={{ color: '#777', fontSize: 14, maxWidth: 320, lineHeight: 1.65 }}>
-            Ten areas that together make up the full picture of music production.
-            Find where you&apos;re stuck and what to do about it.
-          </p>
-
-          {/* CTAs */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, width: '100%', maxWidth: 280 }}>
-            <Link href="/assess" style={{
-              display: 'block', width: '100%', textAlign: 'center',
-              background: '#F0C400', color: '#000',
-              fontSize: 14, fontWeight: 700, padding: '13px 0',
-              borderRadius: 50, letterSpacing: '0.07em',
-              textDecoration: 'none',
-            }}>
-              Take the Assessment
-            </Link>
-            <Link href="/work-with-us" className="btn-ghost" style={{
-              display: 'block', width: '100%', textAlign: 'center',
-              padding: '11px 0', fontSize: 13, fontWeight: 600,
-              border: '1px solid #2a2a2a', borderRadius: 10,
-              color: '#555', textDecoration: 'none', transition: 'all 0.15s',
-            }}>
-              Work with us
-            </Link>
-          </div>
-
         </div>
 
-        {/* Ten areas grid */}
-        <div style={{ padding: '0 24px 48px', maxWidth: 560, margin: '0 auto', width: '100%' }}>
-          <p style={{
-            fontFamily: 'var(--font-montserrat), sans-serif',
-            fontSize: 9, fontWeight: 700, letterSpacing: '0.14em',
-            textTransform: 'uppercase', color: '#444',
-            textAlign: 'center', marginBottom: 16,
-          }}>
-            The Ten Areas
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        {/* Body content */}
+        <div style={{ maxWidth: 560, margin: '0 auto', width: '100%', padding: '0 24px 56px' }}>
+
+          {/* Blurb */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 40, color: '#777', fontSize: 14, lineHeight: 1.75 }}>
+            <p>
+              Compass for Music Producers is a framework developed by Zach Burger (RemEmber) and
+              Skyler Newsome (Circles in the Sky).
+            </p>
+            <p>
+              The way we think about it is a skill tree for music producers. Every producer will
+              have a different profile, and by finding out what yours looks like, it reveals what
+              areas are your strong suits and which are weak, whether that&apos;s from lack of
+              experience or just overthinking it.
+            </p>
+            <p>
+              For each area shown below, we&apos;ve provided a rundown of what that area means to
+              us, what a low score looks and feels like, and what a high score looks and feels like.
+            </p>
+            <p>
+              When you&apos;re ready, take the Skill Tree assessment to see what your Skill Tree
+              profile might look like.
+            </p>
+          </div>
+
+          {/* Area buttons */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
             {AREAS.map((area) => (
               <Link
                 key={area.slug}
                 href={`/learn/${area.slug}/what-is`}
-                className="area-tile"
+                className="area-btn"
                 style={{
-                  display: 'block',
-                  background: '#0e0e0e', border: '1px solid #282828',
-                  borderRadius: 12, padding: '14px 18px',
-                  color: '#fff', textDecoration: 'none',
-                  fontSize: 13, fontWeight: 600, transition: 'border-color 0.15s',
+                  display: 'block', textAlign: 'center',
+                  background: '#F0C400', color: '#000',
+                  fontSize: 13, fontWeight: 700, padding: '13px 8px',
+                  borderRadius: 50, letterSpacing: '0.06em',
+                  textDecoration: 'none', transition: 'transform 0.15s, box-shadow 0.15s',
+                  boxShadow: '0 0 20px #F0C40018',
                 }}
               >
                 {area.label}
               </Link>
             ))}
           </div>
+
+          {/* Work with us */}
+          <Link href="/work-with-us" className="btn-ghost" style={{
+            display: 'block', width: '100%', textAlign: 'center',
+            padding: '11px 0', fontSize: 13, fontWeight: 600,
+            border: '1px solid #2a2a2a', borderRadius: 10,
+            color: '#555', textDecoration: 'none', transition: 'all 0.15s',
+            marginTop: 10,
+          }}>
+            Work with us
+          </Link>
+
         </div>
 
         {/* Footer */}
