@@ -5,7 +5,7 @@ export default function Home() {
     <>
       <style>{`
         .learn-btn:hover { transform: scale(1.03); box-shadow: 0 0 32px #F0C40045; }
-        .moon-bird { display: block; margin: -12px auto -12px; opacity: 0.55; width: 140px; }
+        .moon-bird { display: block; margin: 0 auto 12px; opacity: 0.55; width: 140px; }
         @media (min-width: 640px) { .moon-bird { width: 210px; } }
         .blurb { font-size: 15px; font-family: var(--font-dm-sans), sans-serif; }
         @media (min-width: 640px) { .blurb { font-size: 17px; } }
