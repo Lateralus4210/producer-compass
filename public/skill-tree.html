@@ -1879,33 +1879,11 @@
     function TitleScreen({ onStart, onReturning, welcomeBack }) {
       const h1Ref = useRef(null);
       const [marqueeW, setMarqueeW]     = useState(0);
-      const [showLogin, setShowLogin]   = useState(false);
-      const [loginEmail, setLoginEmail] = useState('');
-      const [loginError, setLoginError] = useState(null);
-      const [loginLoading, setLoginLoading] = useState(false);
 
       useEffect(() => {
         if (h1Ref.current) setMarqueeW(h1Ref.current.offsetWidth);
       }, []);
 
-      const handleLogin = async () => {
-        if (!loginEmail.trim() || loginLoading) return;
-        setLoginLoading(true);
-        setLoginError(null);
-        try {
-          const res = await fetch('/api/session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: loginEmail.trim() }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'No account found for that email.');
-          onReturning(data.user);
-        } catch (err) {
-          setLoginError(err.message);
-          setLoginLoading(false);
-        }
-      };
 
       return (
         <div className="screen title-screen">
@@ -1931,44 +1909,6 @@
             <button className="btn-primary" onClick={onStart} style={{ width: '100%' }}>
               Start
             </button>
-            <button
-              onClick={() => setShowLogin(!showLogin)}
-              style={{
-                width: '100%', padding: '11px 0', fontSize: 13, fontWeight: 600,
-                background: showLogin ? '#1a1a1a' : 'none',
-                border: `1px solid ${showLogin ? '#555' : '#2a2a2a'}`,
-                borderRadius: 10, color: showLogin ? '#ccc' : '#555',
-                cursor: 'pointer', transition: 'all 0.15s', fontFamily: 'inherit',
-              }}
-              onMouseEnter={e => { if (!showLogin) { e.currentTarget.style.borderColor = '#444'; e.currentTarget.style.color = '#888'; }}}
-              onMouseLeave={e => { if (!showLogin) { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.color = '#555'; }}}
-            >Log In</button>
-            {showLogin && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
-                <div style={{ display: 'flex', gap: 8, width: '100%' }}>
-                  <input
-                    type="email"
-                    placeholder="your@email.com"
-                    value={loginEmail} autoFocus
-                    onChange={e => setLoginEmail(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleLogin()}
-                    style={{
-                      flex: 1, background: '#0e0e0e', border: '1px solid #333', color: '#fff',
-                      borderRadius: 8, padding: '8px 12px', fontSize: 13,
-                      fontFamily: 'inherit', outline: 'none',
-                    }}
-                  />
-                  <button onClick={handleLogin} disabled={loginLoading || !loginEmail.trim()} style={{
-                    background: '#F0C400', color: '#000', border: 'none', borderRadius: 8,
-                    padding: '8px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                    opacity: (loginLoading || !loginEmail.trim()) ? 0.4 : 1, flexShrink: 0,
-                  }}>
-                    {loginLoading ? '…' : 'Go'}
-                  </button>
-                </div>
-                {loginError && <div style={{ fontSize: 11, color: '#FC8181' }}>{loginError}</div>}
-              </div>
-            )}
           </div>
           <div className="title-copyright">
             <div>© 2026 The Free Producer</div>

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 const OPTIONS = {
   projectsStarted: ["1–10", "11–50", "51–100", "100+"],
-  projectsReleased: ["0", "1–5", "6–20", "21+"],
+  projectsReleased: ["0", "1–10", "11–30", "31+"],
   yearsProducing: ["Less than a year", "1–3 years", "3–7 years", "7+ years"],
 };
 
@@ -102,7 +102,7 @@ export default function WorkWithUs() {
                   "Consistent accountability check-ins",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-3 text-sm text-zinc-300">
-                    <span className="text-yellow-400 mt-0.5 shrink-0">—</span>
+                    <span className="text-yellow-400 mt-0.5 shrink-0">•</span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -152,7 +152,7 @@ export default function WorkWithUs() {
               A few quick questions.
             </h2>
             <p className="text-zinc-400 text-sm leading-relaxed mb-10">
-              These help us understand where you are before you take the Compass assessment.
+              These help us understand where you are before you take the Compass Skill Tree assessment.
             </p>
 
             <div className="space-y-8 mb-10">
