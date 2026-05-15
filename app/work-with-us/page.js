@@ -59,7 +59,7 @@ export default function WorkWithUs() {
     } catch (e) {
       console.error("Apply error:", e);
     }
-    router.push("/");
+    router.push("/assess");
   }
 
   if (submitting) {
