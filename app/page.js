@@ -20,16 +20,16 @@ export default function Home() {
           <div style={{ textAlign: 'center', marginBottom: 16 }}>
             <p style={{
               fontFamily: 'var(--font-montserrat), sans-serif',
-              fontSize: 'clamp(10px, 1.8vw, 14px)',
-              fontWeight: 600, letterSpacing: '0.22em',
+              fontSize: 'clamp(14px, 3vw, 20px)',
+              fontWeight: 600, letterSpacing: '0.18em',
               textTransform: 'uppercase', color: '#888',
-              marginBottom: 10,
+              marginBottom: 8,
             }}>
               Your Music Production
             </p>
             <p style={{
               fontFamily: 'var(--font-libre), Georgia, serif',
-              fontSize: 'clamp(42px, 8vw, 80px)',
+              fontSize: 'clamp(38px, 7vw, 68px)',
               fontWeight: 700, lineHeight: 1, letterSpacing: '0.12em',
               textTransform: 'uppercase', color: '#F0C400',
             }}>
@@ -52,16 +52,17 @@ export default function Home() {
             lineHeight: 1.75, textAlign: 'center',
           }}>
             <p>
-              <em>Compass for Music Producers</em> is a comprehensive framework developed by
-              producers Zach Burger (<em>RemEmber</em>) and Skyler Newsome (<em>Circles in the Sky</em>).
+              <em>Compass for Music Producers</em> is a gamified framework developed by
+              producers Zach Burger (<em>RemEmber</em>) and{' '}
+              <span style={{ whiteSpace: 'nowrap' }}>Skyler Newsome (<em>Circles in the Sky</em>).</span>
             </p>
             <p>
               Think about it like a <strong>skill tree</strong>, for <strong>music producers</strong>.
             </p>
             <p>
-              Every producer will have a different profile.<br />
-              Finding out what yours is encourages you by revealing which areas are your{' '}
-              <em>strong suits</em>, and which areas could use improvement.
+              Every producer will have a different profile. Seeing yours is meant to encourage
+              you in your strong suits, and reveal which area needs the most work — what we
+              call your <strong>North Star</strong>.
             </p>
           </div>
 
