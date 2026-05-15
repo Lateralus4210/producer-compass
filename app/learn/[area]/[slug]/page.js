@@ -19,7 +19,7 @@ export async function generateMetadata({ params }) {
   if (!article) return {};
   const areaLabel = articles[area]?.label ?? area;
   return {
-    title: `${article.title} — The Free Producer Compass`,
+    title: `${article.title} — Compass for Music Producers`,
     description: article.body[0],
     openGraph: {
       title: article.title,
@@ -56,24 +56,23 @@ function SkoolPlug() {
 
 function CoachingPlug() {
   return (
-    <div className="border border-zinc-800 rounded-xl px-6 py-6 mt-10">
+    <div className="border border-zinc-800 rounded-xl px-6 py-6 mb-10">
       <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-1">
-        Win Track
+        Win Track by Compass — $250/month
       </p>
-      <p className="text-xl font-semibold text-white mb-3">
-        Work through this one-on-one.
-      </p>
-      <p className="text-zinc-400 text-sm mb-5">
-        If you recognized yourself in what you just read, that&apos;s useful information.
-        Win Track is one month of structured work — a diagnostic, exploratory calls, and one
-        concrete thing you prove to yourself before the month is out.
+      <p className="text-zinc-300 text-sm leading-relaxed mb-5">
+        If you feel everything is moving smoothly with your music production journey, Compass
+        isn&apos;t for you. But if you notice any hesitation answering that question — anything
+        that feels stagnant — Compass was made for you. Compass is here to figure out what that
+        is, figure out what&apos;s keeping it from moving, then support your growth so things
+        start moving again.
       </p>
       <Link
         href="/work-with-us"
         className="inline-block text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
         style={{ backgroundColor: "#FFD700", color: "#000" }}
       >
-        Learn about Win Track →
+        Work with us →
       </Link>
     </div>
   );
@@ -97,8 +96,8 @@ export default async function ArticlePage({ params }) {
           The Compass Skill Tree &mdash; {areaLabel}
         </p>
 
-        {/* Skool plug — top */}
-        <SkoolPlug />
+        {/* Coaching plug — top */}
+        <CoachingPlug />
 
         {/* Article */}
         <article>
@@ -115,8 +114,8 @@ export default async function ArticlePage({ params }) {
           </div>
         </article>
 
-        {/* Coaching plug — bottom */}
-        <CoachingPlug />
+        {/* Skool plug — bottom */}
+        <SkoolPlug />
 
         {/* Next button */}
         <div className="mt-10 flex justify-end">

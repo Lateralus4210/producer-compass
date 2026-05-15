@@ -102,8 +102,22 @@ function ResultsContent() {
           </div>
         )}
 
-        {/* Skool plug */}
+        {/* Coaching plug */}
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-5 mb-5">
+          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Compass for Music Producers</p>
+          <p className="text-sm text-zinc-400 mb-4">
+            If you notice any hesitation about whether things are moving — anything that feels stagnant — Compass was made for you.
+          </p>
+          <Link
+            href="/work-with-us"
+            className="inline-block bg-white text-black text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-zinc-200 transition-colors"
+          >
+            Work with us →
+          </Link>
+        </div>
+
+        {/* Skool plug */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-5">
           <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Free Community</p>
           <p className="font-semibold mb-2">Join The Free Producer on Skool</p>
           <p className="text-sm text-zinc-400 mb-4">
@@ -117,21 +131,6 @@ function ResultsContent() {
           >
             Join free →
           </a>
-        </div>
-
-        {/* Win Track plug */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-5 py-5">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Win Track</p>
-          <p className="font-semibold mb-2">Work through this one-on-one.</p>
-          <p className="text-sm text-zinc-400 mb-4">
-            One month of structured work with Zach or Skyler. A diagnostic, real calls, and one thing you prove to yourself before the month is out.
-          </p>
-          <Link
-            href="/work-with-us"
-            className="inline-block bg-white text-black text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-zinc-200 transition-colors"
-          >
-            Learn about Win Track →
-          </Link>
         </div>
 
       </div>

@@ -2067,27 +2067,8 @@
         if (saved && saved.qIdx > 0 && saved.qIdx < QUESTIONS.length) setSavedData(saved);
         fetch('/api/session')
           .then(r => r.json())
-          .then(data => {
-            if (data.user) {
-              if (data.user.role === 'admin') {
-                setEmail(data.user.email || '');
-                setScreen('admin-home');
-              } else {
-                const hasScores = data.user.scores?.some(s => s > 0);
-                if (!hasScores) {
-                  setWelcomeBack(true);
-                  setScreen('title');
-                } else {
-                  setScores(data.user.scores || Array(10).fill(0));
-                  setEmail(data.user.email || '');
-                  setDisplayName(data.user.displayName || '');
-                  setReturning(true);
-                  setScreen('agent');
-                }
-              }
-            } else {
-              setScreen('title');
-            }
+          .then(() => {
+            setScreen('title');
           })
           .catch(() => setScreen('dev-gate'))
           .finally(() => requestAnimationFrame(() => requestAnimationFrame(() => setCovering(false))));
@@ -2104,24 +2085,7 @@
 
       const goTitle  = () => navigate('title');
       const handleSignOut = () => { lsClear(); navigate('title'); };
-      const handleReturning = (user) => {
-        if (user.role === 'admin') {
-          navigate('admin-home', () => setEmail(user.email || ''));
-        } else {
-          const hasScores = user.scores?.some(s => s > 0);
-          if (!hasScores) {
-            setWelcomeBack(true);
-            navigate('title');
-          } else {
-            navigate('agent', () => {
-              setScores(user.scores || Array(10).fill(0));
-              setEmail(user.email || '');
-              setDisplayName(user.displayName || '');
-              setReturning(true);
-            });
-          }
-        }
-      };
+      const handleReturning = () => { navigate('title'); };
       const goName   = () => navigate('name');
       const goSurvey = (n, dn) => navigate('survey', () => {
         setName(n); setDisplayName(dn);
@@ -2130,7 +2094,7 @@
       const finish      = (s, a, ss) => navigate('results', () => { setScores(s); setAnswers(a || []); setSelfScores(ss || Array(10).fill(null)); });
       const goReveal    = (em) => navigate('reveal', () => { if (em) setEmail(em); });
       const goTransition = () => navigate('transition');
-      const goAgent     = (answer) => navigate('agent', () => { setSelected(answer); setReturning(false); });
+      const goAgent     = () => { window.location.href = `/results?scores=${scores.map(toTen).join(',')}`; };
       const goResume = () => navigate('survey', () => {
         const s = savedData;
         setName(s.name || ''); setDisplayName(s.displayName || (s.name || '').split(' ')[0]);
