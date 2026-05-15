@@ -53,7 +53,7 @@ export default function Home() {
           }}>
             <p>
               <em>Compass for Music Producers</em> is a gamified framework developed by
-              producers Zach Burger (<em>RemEmber</em>) and{' '}
+              producers <span style={{ whiteSpace: 'nowrap' }}>Zach Burger (<em>RemEmber</em>)</span> and{' '}
               <span style={{ whiteSpace: 'nowrap' }}>Skyler Newsome (<em>Circles in the Sky</em>).</span>
             </p>
             <p>
@@ -61,7 +61,7 @@ export default function Home() {
             </p>
             <p>
               Every producer will have a different profile. Seeing yours is meant to encourage
-              you in your strong suits, and reveal which area needs the most work — what we
+              you in your strong suits, and reveal which area needs the most work: what we
               call your <strong>North Star</strong>.
             </p>
           </div>
