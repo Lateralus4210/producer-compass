@@ -16,7 +16,7 @@ export default function DevPanel() {
   };
 
   const goArticle = (area, slug) => {
-    window.location.href = `/learn/${area}/${slug}`;
+    window.location.href = `/${area}/${slug}`;
   };
 
   return (

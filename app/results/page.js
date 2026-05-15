@@ -64,7 +64,7 @@ function ResultsContent() {
             return (
               <Link
                 key={area}
-                href={`/learn/${area}/low-score`}
+                href={`/${area}/low-score`}
                 className={`block rounded-xl px-5 py-4 transition-colors ${
                   isPrimary
                     ? "bg-white text-black hover:bg-zinc-100"
@@ -94,7 +94,7 @@ function ResultsContent() {
         {primaryArea && (
           <div className="mb-10">
             <Link
-              href={`/learn/${primaryArea}/low-score`}
+              href={`/${primaryArea}/low-score`}
               className="block w-full text-center bg-white text-black font-semibold py-4 rounded-xl hover:bg-zinc-100 transition-colors"
             >
               Start with {articles[primaryArea]?.label} →
