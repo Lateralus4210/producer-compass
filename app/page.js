@@ -1,17 +1,10 @@
 import Link from "next/link";
-import { articles } from "@/lib/articles";
-
-const ROWS = [
-  ["ideation", "composition", "music-theory"],
-  ["daw-proficiency", "mixing", "mastering"],
-  ["collaboration", "artwork-content", "release-process", "promo"],
-];
 
 export default function Home() {
   return (
     <>
       <style>{`
-        .area-btn:hover { transform: scale(1.03); box-shadow: 0 0 32px #F0C40045; }
+        .learn-btn:hover { transform: scale(1.03); box-shadow: 0 0 32px #F0C40045; }
       `}</style>
 
       <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', display: 'flex', flexDirection: 'column' }}>
@@ -73,37 +66,25 @@ export default function Home() {
               areas are your strong suits and which are weak, whether that&apos;s from lack of experience
               or overthinking it.
             </p>
-            <p>
-              Tap a button to learn more about how we approach each area.
-            </p>
           </div>
 
-          {/* Area buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {ROWS.map((row, ri) => (
-              <div key={ri} style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-                {row.map((slug) => (
-                  <Link
-                    key={slug}
-                    href={`/learn/${slug}/what-is`}
-                    className="area-btn"
-                    style={{
-                      width: 120,
-                      flexShrink: 0,
-                      display: 'block', textAlign: 'center',
-                      background: '#F0C400', color: '#000',
-                      fontSize: 13, fontWeight: 700, padding: '13px 6px',
-                      borderRadius: 50, letterSpacing: '0.06em',
-                      textDecoration: 'none',
-                      transition: 'transform 0.15s, box-shadow 0.15s',
-                      boxShadow: '0 0 20px #F0C40018',
-                    }}
-                  >
-                    {articles[slug]?.label ?? slug}
-                  </Link>
-                ))}
-              </div>
-            ))}
+          {/* Single CTA */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <Link
+              href="/learn/ideation/low-score"
+              className="learn-btn"
+              style={{
+                display: 'block', textAlign: 'center',
+                background: '#F0C400', color: '#000',
+                fontSize: 14, fontWeight: 700, padding: '14px 40px',
+                borderRadius: 50, letterSpacing: '0.06em',
+                textDecoration: 'none',
+                transition: 'transform 0.15s, box-shadow 0.15s',
+                boxShadow: '0 0 20px #F0C40018',
+              }}
+            >
+              Learn more
+            </Link>
           </div>
 
         </div>

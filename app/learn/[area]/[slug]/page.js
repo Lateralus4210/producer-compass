@@ -114,6 +114,46 @@ export default async function ArticlePage({ params }) {
           </div>
         </article>
 
+        {/* Area picker */}
+        <div className="mb-10 mt-12">
+          <p className="text-xs text-zinc-500 uppercase tracking-wider font-medium mb-4 text-center">
+            Explore another area
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[
+              ["ideation", "composition", "music-theory"],
+              ["daw-proficiency", "mixing", "mastering"],
+              ["collaboration", "artwork-content", "release-process", "promo"],
+            ].map((row, ri) => (
+              <div key={ri} style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                {row.map((a) => (
+                  <Link
+                    key={a}
+                    href={`/learn/${a}/low-score`}
+                    style={{
+                      width: 110,
+                      flexShrink: 0,
+                      display: 'block',
+                      textAlign: 'center',
+                      background: a === area ? '#F0C400' : '#111',
+                      color: a === area ? '#000' : '#888',
+                      border: a === area ? 'none' : '1px solid #2a2a2a',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      padding: '10px 4px',
+                      borderRadius: 50,
+                      letterSpacing: '0.06em',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    {articles[a]?.label ?? a}
+                  </Link>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Skool plug — bottom */}
         <SkoolPlug />
 
