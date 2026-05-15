@@ -5,66 +5,59 @@ export default function Home() {
     <>
       <style>{`
         .learn-btn:hover { transform: scale(1.03); box-shadow: 0 0 32px #F0C40045; }
+        .moon-bird { display: block; margin: 0 auto 40px; opacity: 0.55; width: 170px; }
+        @media (min-width: 640px) { .moon-bird { width: 260px; } }
+        .blurb { font-size: 15px; }
+        @media (min-width: 640px) { .blurb { font-size: 18px; } }
+        .blurb em { font-style: italic; }
+        .blurb strong { font-weight: 700; color: #fff; }
       `}</style>
 
       <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', display: 'flex', flexDirection: 'column' }}>
-
         <div style={{ maxWidth: 580, margin: '0 auto', width: '100%', padding: '56px 24px 56px' }}>
 
-          {/* Heading with moon+bird image behind */}
-          <div style={{ position: 'relative', textAlign: 'center', marginBottom: 40, padding: '24px 0' }}>
-            <img
-              src="/moon-bird.png"
-              alt=""
-              aria-hidden="true"
-              style={{
-                position: 'absolute',
-                top: '50%', left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: 280,
-                opacity: 0.5,
-                zIndex: 0,
-                pointerEvents: 'none',
-                userSelect: 'none',
-              }}
-            />
-            <h1 style={{
-              position: 'relative', zIndex: 1,
-              fontFamily: 'var(--font-libre), Georgia, serif',
-              fontSize: 'clamp(26px, 5.5vw, 50px)',
-              fontWeight: 400, lineHeight: 1.15,
-              margin: 0,
+          {/* Heading */}
+          <h1 style={{
+            fontFamily: 'var(--font-libre), Georgia, serif',
+            fontSize: 'clamp(26px, 5.5vw, 54px)',
+            fontWeight: 400, lineHeight: 1.15,
+            textAlign: 'center', marginBottom: 36,
+          }}>
+            <span style={{ fontSize: '0.61em', color: '#e8e8e8' }}>Your Music Production</span>
+            <br />
+            <em style={{
+              fontStyle: 'normal', color: '#F0C400',
+              fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase',
             }}>
-              <span style={{
-                fontSize: '0.61em', color: '#fff',
-                textShadow: '0 1px 8px #000, 0 0 24px #000',
-              }}>Your Music Production</span>
-              <br />
-              <em style={{
-                fontStyle: 'normal', color: '#F0C400',
-                fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase',
-                textShadow: '0 2px 12px #000a, 0 0 32px #000',
-              }}>
-                Compass
-              </em>
-            </h1>
-          </div>
+              Compass
+            </em>
+          </h1>
+
+          {/* Moon + bird — below heading, above copy */}
+          <img
+            src="/moon-bird.png"
+            alt=""
+            aria-hidden="true"
+            className="moon-bird"
+          />
 
           {/* Blurb */}
-          <div style={{
+          <div className="blurb" style={{
             display: 'flex', flexDirection: 'column', gap: 16,
-            marginBottom: 48, color: '#e8e8e8', fontSize: 16,
+            marginBottom: 48, color: '#e8e8e8',
             lineHeight: 1.75, textAlign: 'center',
           }}>
             <p>
-              Compass for Music Producers is a framework developed by producers Zach Burger (RemEmber) and
-              Skyler Newsome (Circles in the Sky).
+              <em>Compass for Music Producers</em> is a comprehensive framework developed by
+              producers Zach Burger (<em>RemEmber</em>) and Skyler Newsome (<em>Circles in the Sky</em>).
             </p>
             <p>
-              Think about it like a skill tree for music producers.<br />
-              Every producer will have a different profile. Finding out what yours looks like reveals which
-              areas are your strong suits and which are weak, whether that&apos;s from lack of experience
-              or overthinking it.
+              Think about it like a <strong>skill tree</strong>, for <strong>music producers</strong>.
+            </p>
+            <p>
+              Every producer will have a different profile.<br />
+              Finding out what yours is encourages you by revealing which areas are your{' '}
+              <em>strong suits</em>, and which areas could use improvement.
             </p>
           </div>
 
@@ -101,7 +94,6 @@ export default function Home() {
           <div>© {new Date().getFullYear()} ZMT LLC</div>
           <div>Compass for Music Producers</div>
         </div>
-
       </div>
     </>
   );
