@@ -5,11 +5,11 @@ export default function Home() {
     <>
       <style>{`
         .learn-btn:hover { transform: scale(1.03); box-shadow: 0 0 32px #F0C40045; }
-        .moon-bird { display: block; margin: 0 auto 40px; opacity: 0.55; width: 170px; }
-        @media (min-width: 640px) { .moon-bird { width: 260px; } }
-        .blurb { font-size: 15px; }
-        @media (min-width: 640px) { .blurb { font-size: 18px; } }
-        .blurb em { font-style: italic; }
+        .moon-bird { display: block; margin: -12px auto -12px; opacity: 0.55; width: 140px; }
+        @media (min-width: 640px) { .moon-bird { width: 210px; } }
+        .blurb { font-size: 15px; font-family: var(--font-dm-sans), sans-serif; }
+        @media (min-width: 640px) { .blurb { font-size: 17px; } }
+        .blurb em { font-style: italic; color: #fff; }
         .blurb strong { font-weight: 700; color: #fff; }
       `}</style>
 
@@ -17,7 +17,7 @@ export default function Home() {
         <div style={{ maxWidth: 580, margin: '0 auto', width: '100%', padding: '56px 24px 56px' }}>
 
           {/* Heading */}
-          <div style={{ textAlign: 'center', marginBottom: 36 }}>
+          <div style={{ textAlign: 'center', marginBottom: 16 }}>
             <p style={{
               fontFamily: 'var(--font-montserrat), sans-serif',
               fontSize: 'clamp(10px, 1.8vw, 14px)',
@@ -48,9 +48,8 @@ export default function Home() {
           {/* Blurb */}
           <div className="blurb" style={{
             display: 'flex', flexDirection: 'column', gap: 16,
-            marginBottom: 48, color: '#e8e8e8',
-            fontFamily: 'var(--font-libre), Georgia, serif',
-            lineHeight: 1.85, textAlign: 'center',
+            marginBottom: 40, color: '#ccc',
+            lineHeight: 1.75, textAlign: 'center',
           }}>
             <p>
               <em>Compass for Music Producers</em> is a comprehensive framework developed by
