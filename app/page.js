@@ -17,21 +17,25 @@ export default function Home() {
         <div style={{ maxWidth: 580, margin: '0 auto', width: '100%', padding: '56px 24px 56px' }}>
 
           {/* Heading */}
-          <h1 style={{
-            fontFamily: 'var(--font-libre), Georgia, serif',
-            fontSize: 'clamp(26px, 5.5vw, 54px)',
-            fontWeight: 400, lineHeight: 1.15,
-            textAlign: 'center', marginBottom: 36,
-          }}>
-            <span style={{ fontSize: '0.61em', color: '#e8e8e8' }}>Your Music Production</span>
-            <br />
-            <em style={{
-              fontStyle: 'normal', color: '#F0C400',
-              fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase',
+          <div style={{ textAlign: 'center', marginBottom: 36 }}>
+            <p style={{
+              fontFamily: 'var(--font-montserrat), sans-serif',
+              fontSize: 'clamp(10px, 1.8vw, 14px)',
+              fontWeight: 600, letterSpacing: '0.22em',
+              textTransform: 'uppercase', color: '#888',
+              marginBottom: 10,
+            }}>
+              Your Music Production
+            </p>
+            <p style={{
+              fontFamily: 'var(--font-libre), Georgia, serif',
+              fontSize: 'clamp(42px, 8vw, 80px)',
+              fontWeight: 700, lineHeight: 1, letterSpacing: '0.12em',
+              textTransform: 'uppercase', color: '#F0C400',
             }}>
               Compass
-            </em>
-          </h1>
+            </p>
+          </div>
 
           {/* Moon + bird — below heading, above copy */}
           <img
@@ -45,7 +49,8 @@ export default function Home() {
           <div className="blurb" style={{
             display: 'flex', flexDirection: 'column', gap: 16,
             marginBottom: 48, color: '#e8e8e8',
-            lineHeight: 1.75, textAlign: 'center',
+            fontFamily: 'var(--font-libre), Georgia, serif',
+            lineHeight: 1.85, textAlign: 'center',
           }}>
             <p>
               <em>Compass for Music Producers</em> is a comprehensive framework developed by
