@@ -62,14 +62,14 @@ export default function Home() {
             <p>
               Every producer will have a different profile. Seeing your scores in each of the
               10 areas is meant to encourage you in your strong suits, and reveal which area
-              needs the most work: what we call your <strong>North Star</strong>.
+              needs the most work:<br />what we call your <strong>North Star</strong>.
             </p>
           </div>
 
           {/* Single CTA */}
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <Link
-              href="/learn/ideation/low-score"
+              href="/learn"
               className="learn-btn"
               style={{
                 display: 'block', textAlign: 'center',
@@ -81,7 +81,7 @@ export default function Home() {
                 boxShadow: '0 0 20px #F0C40018',
               }}
             >
-              Learn more
+              See more
             </Link>
           </div>
 
